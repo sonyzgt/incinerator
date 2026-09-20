@@ -2,19 +2,31 @@
 
 @layer base {
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #07090e;
+    font-family: 'Space Grotesk', -apple-system, sans-serif;
+    background-color: #05070A;
     background-image: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(249, 115, 22, 0.08), transparent 70%),
-      radial-gradient(circle at 50% 50%, rgba(14, 18, 26, 0.5) 0%, #07090e 100%);
+      linear-gradient(to right, rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+      radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 60%);
+    background-size: 40px 40px, 40px 40px, 100% 100%;
     background-attachment: fixed;
     letter-spacing: -0.01em;
-    color: #f4f4f5;
+    color: #f1f5f9;
+  }
+
+  .font-orbitron {
+    font-family: 'Orbitron', -apple-system, sans-serif;
+    letter-spacing: 0.05em;
+  }
+
+  .font-oxanium {
+    font-family: 'Oxanium', -apple-system, sans-serif;
+    letter-spacing: 0.02em;
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Space Grotesk', -apple-system, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Orbitron', -apple-system, sans-serif;
+    letter-spacing: 0.04em;
   }
 
   code, pre, .font-mono {
@@ -22,90 +34,124 @@
   }
 }
 
-/* Minimalist Glass Surfaces */
-.glass-panel {
-  background: rgba(13, 17, 24, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 14px;
+/* High-Tech Futuristic Control Panels */
+.cyber-panel {
+  background: rgba(8, 11, 16, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
-.glass-card {
-  background: #0c1017;
+.cyber-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #00F0FF;
+  border-left: 2px solid #00F0FF;
+}
+
+.cyber-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-bottom: 2px solid #00F0FF;
+  border-right: 2px solid #00F0FF;
+}
+
+.cyber-panel-dark {
+  background: rgba(6, 8, 13, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
 }
 
-.glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+.cyber-button {
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-button {
-  background: rgba(255, 255, 255, 0.04);
+.cyber-button:hover {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 15px -3px rgba(0, 240, 255, 0.3);
+}
+
+/* Precision Glow Systems */
+.glow-cyan {
+  box-shadow: 0 0 25px -4px rgba(0, 240, 255, 0.3);
+}
+
+.glow-green {
+  box-shadow: 0 0 25px -4px rgba(0, 255, 102, 0.3);
+}
+
+.glow-orange {
+  box-shadow: 0 0 25px -4px rgba(255, 119, 0, 0.3);
+}
+
+.glow-rose {
+  box-shadow: 0 0 25px -4px rgba(255, 0, 85, 0.3);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+}
+
+.text-glow-green {
+  text-shadow: 0 0 12px rgba(0, 255, 102, 0.5);
+}
+
+/* Cyber Scanning Line */
+@keyframes cyber-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+.animate-scan {
+  animation: cyber-scan 6s linear infinite;
+}
+
+/* Radar Pulse Animation */
+@keyframes radar-pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 0.3; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.animate-radar {
+  animation: radar-pulse 3s ease-in-out infinite;
+}
+
+/* Backward compatibility for previous classes */
+.sketch-box, .sketch-card, .glass-panel, .glass-card {
+  background: rgba(8, 11, 16, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  transition: all 0.15s ease;
 }
 
-.glass-button:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-/* Glow Effects */
-.glow-ember {
-  box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.25);
-}
-
-.glow-emerald {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
-}
-
-/* Modern Minimalist Compatibility Wrappers (replaces old comic styles) */
-.sketch-box, .sketch-card {
-  background: #0c1017;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-.sketch-btn {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  transition: all 0.15s ease;
-}
-
-.font-sketch, .font-hand, .font-doodle {
-  font-family: 'Inter', sans-serif;
-}
-
-/* Smooth Pulse Animation */
-@keyframes soft-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.96); }
-}
-
-.animate-soft-pulse {
-  animation: soft-pulse 2.5s ease-in-out infinite;
-}
-
-/* Minimalist Scrollbars */
+/* Precision Futuristic Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #07090e;
+  background: #05070A;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 4px;
+  background: #1e293b;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #00F0FF;
 }

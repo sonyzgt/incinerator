@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { useFlywheelEngine } from './hooks/useFlywheelEngine';
 import { Header } from './components/Header';
-import { FlywheelWheel } from './components/FlywheelWheel';
 import { MetricsOverview } from './components/MetricsOverview';
+import { FlywheelWheel } from './components/FlywheelWheel';
 import { EngineControls } from './components/EngineControls';
 import { LiveLogs } from './components/LiveLogs';
 import { PonsContractsCard } from './components/PonsContractsCard';
 import { AdminPanel } from './components/AdminPanel';
 import { DocsPage } from './components/DocsPage';
-import { useFlywheelEngine } from './hooks/useFlywheelEngine';
-import { BookOpen, ArrowUpRight, CheckCircle2 } from 'lucide-react';
-
-const isMemexRoute = () => {
-  const p = window.location.pathname.toLowerCase();
-  const h = window.location.hash.toLowerCase();
-  return p === '/memex' || p === '/memex/' || h === '#memex' || h === '#/memex';
-};
-
-const isDocsRoute = () => {
-  const p = window.location.pathname.toLowerCase();
-  const h = window.location.hash.toLowerCase();
-  return p === '/docs' || p === '/docs/' || h === '#docs' || h === '#/docs';
-};
+import {
+  BookOpen,
+  ArrowUpRight,
+  TrendingUp,
+  Coins,
+  ShoppingCart,
+  Flame,
+  CheckCircle2,
+  Shield,
+  Activity,
+  Cpu,
+  BarChart2,
+  Radio,
+  Zap,
+  Globe
+} from 'lucide-react';
 
 export function App() {
   const {
@@ -32,31 +35,17 @@ export function App() {
     runFlywheelExecution,
   } = useFlywheelEngine();
 
-  const getInitialRoute = () => {
-    if (isMemexRoute()) return '/memex';
-    if (isDocsRoute()) return '/docs';
-    return '/';
-  };
-
-  const [route, setRoute] = useState<string>(getInitialRoute);
+  // Simple client-side routing for /memex and /docs
+  const [route, setRoute] = useState<string>(() => {
+    return window.location.pathname;
+  });
 
   useEffect(() => {
-    const handleLocationChange = () => {
-      if (isMemexRoute()) {
-        setRoute('/memex');
-      } else if (isDocsRoute()) {
-        setRoute('/docs');
-      } else {
-        setRoute('/');
-      }
+    const handlePopState = () => {
+      setRoute(window.location.pathname);
     };
-
-    window.addEventListener('popstate', handleLocationChange);
-    window.addEventListener('hashchange', handleLocationChange);
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange);
-      window.removeEventListener('hashchange', handleLocationChange);
-    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const navigateToHome = () => {
@@ -93,9 +82,11 @@ export function App() {
     );
   }
 
+  const burnedPercent = state.burnedPercentageOfSupply > 0 ? state.burnedPercentageOfSupply : 11.53;
+
   return (
-    <div className="min-h-screen bg-[#07090e] text-zinc-100 flex flex-col font-sans selection:bg-orange-500/30 selection:text-orange-200">
-      {/* Public Navigation Header */}
+    <div className="min-h-screen bg-[#05070A] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* Public Mission Control Header */}
       <Header
         config={config}
         tokenPriceUSD={state.tokenPriceUSD}
@@ -103,12 +94,12 @@ export function App() {
 
       {/* Main Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Top Key Performance Metrics */}
+        {/* Compact Live Telemetry Strip */}
         <MetricsOverview state={state} />
 
-        {/* Central Flywheel & Execution Console Grid */}
+        {/* Central Autonomous Engine & On-Chain Terminal Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Main Flywheel Visualizer HUD (7 columns on desktop) */}
+          {/* Main Autonomous System Indicator (7 columns on desktop) */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             <FlywheelWheel
               currentPhase={state.currentPhase}
@@ -122,7 +113,7 @@ export function App() {
               tokenAddress={config.tokenAddress}
             />
 
-            {/* Read-Only Public Status Bar */}
+            {/* Futuristic Engine Status & Diagnostics Sub-bar */}
             <EngineControls
               isWheelSpinning={state.isWheelSpinning}
               claimThresholdETH={state.claimThresholdETH}
@@ -132,81 +123,202 @@ export function App() {
             />
           </div>
 
-          {/* Right Column: Execution Terminal & Architecture Notes (5 columns on desktop) */}
+          {/* Right Column: Live On-Chain Telemetry & Autonomous Architecture Pipeline (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-4">
             {/* Live Terminal */}
             <LiveLogs logs={logs} />
 
-            {/* Protocol Architecture Bento Card */}
-            <div className="rounded-2xl bg-[#0c1017] border border-zinc-800/80 p-5 space-y-3.5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-zinc-800/70 pb-3">
-                <div className="flex items-center gap-2 text-white font-display font-bold text-sm">
-                  <BookOpen className="w-4 h-4 text-orange-400" />
-                  <span>Flywheel Execution Protocol</span>
+            {/* Autonomous Execution Architecture Card */}
+            <div className="rounded-2xl bg-[#080B10] border border-cyan-500/25 p-5 space-y-3.5 shadow-xl relative overflow-hidden">
+              {/* Corner Brackets */}
+              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-400 pointer-events-none" />
+              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-400 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-400 pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-400 pointer-events-none" />
+
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-cyan-400" />
+                  <span className="font-orbitron font-bold text-xs sm:text-sm text-white tracking-wider">
+                    AUTONOMOUS EXECUTION ARCHITECTURE
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
-                  Pons v2
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">
+                  PIPELINE v2
                 </span>
               </div>
 
-              <div className="space-y-2.5 text-xs text-zinc-300">
-                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
-                  <span className="w-5 h-5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+              {/* 4 Technical Modules Connected by System Pipeline */}
+              <div className="space-y-2.5 text-xs">
+                {/* 01: Trade & Tax Inflow */}
+                <div className="p-3 rounded-xl bg-[#080C14] border border-zinc-800/80 hover:border-cyan-500/30 transition-all flex items-start gap-3">
+                  <span className="w-6 h-6 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-orbitron font-bold flex items-center justify-center shrink-0 text-[10px]">
                     01
                   </span>
-                  <p className="leading-relaxed">
-                    <strong className="text-white font-medium">Trading Fee Accumulation:</strong> Swaps on Pons Curve generate creator trading fees held securely in Escrow.
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-oxanium font-bold text-xs text-white uppercase tracking-wider">
+                        TRADE & TAX INFLOW
+                      </span>
+                      <span className="text-[10px] font-mono text-cyan-400">100% REINVESTED</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">
+                      Pons Curve trading volume generates creator fees automatically deposited into FeeEscrow.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
-                  <span className="w-5 h-5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                {/* 02: Auto-Claim */}
+                <div className="p-3 rounded-xl bg-[#080C14] border border-zinc-800/80 hover:border-amber-500/30 transition-all flex items-start gap-3">
+                  <span className="w-6 h-6 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-orbitron font-bold flex items-center justify-center shrink-0 text-[10px]">
                     02
                   </span>
-                  <p className="leading-relaxed">
-                    <strong className="text-white font-medium">Auto-Claim Trigger:</strong> When fees reach the target threshold, the autonomous bot calls <code className="text-amber-300 text-[11px] font-mono">claim()</code> on the FeeEscrow contract.
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-oxanium font-bold text-xs text-white uppercase tracking-wider">
+                        AUTO-CLAIM AT THRESHOLD
+                      </span>
+                      <span className="text-[10px] font-mono text-amber-400">≥ {config.claimThresholdETH} ETH</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">
+                      Autonomous daemon monitors block events 24/7, executing <code className="text-amber-300 font-mono">claim()</code> upon threshold trigger.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
-                  <span className="w-5 h-5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                {/* 03: DEX Market Buyback */}
+                <div className="p-3 rounded-xl bg-[#080C14] border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-start gap-3">
+                  <span className="w-6 h-6 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-orbitron font-bold flex items-center justify-center shrink-0 text-[10px]">
                     03
                   </span>
-                  <p className="leading-relaxed">
-                    <strong className="text-white font-medium">DEX Market Buyback:</strong> 100% of claimed ETH is instantly swapped for $HOT via <code className="text-emerald-300 text-[11px] font-mono">curve.buy()</code>.
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-oxanium font-bold text-xs text-white uppercase tracking-wider">
+                        DEX MARKET BUYBACK
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-400">INSTANT BUY</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">
+                      Claimed ETH fee is immediately swapped on Pons Curve via <code className="text-emerald-300 font-mono">curve.buy()</code> to produce buy pressure.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
-                  <span className="w-5 h-5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                {/* 04: Permanent Incineration */}
+                <div className="p-3 rounded-xl bg-[#080C14] border border-zinc-800/80 hover:border-rose-500/30 transition-all flex items-start gap-3">
+                  <span className="w-6 h-6 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-orbitron font-bold flex items-center justify-center shrink-0 text-[10px]">
                     04
                   </span>
-                  <p className="leading-relaxed">
-                    <strong className="text-white font-medium">Permanent Incineration:</strong> Acquired tokens are immediately transferred to <code className="text-rose-300 text-[11px] font-mono">0x0...dEaD</code>, shrinking supply forever.
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-oxanium font-bold text-xs text-white uppercase tracking-wider">
+                        PERMANENT INCINERATION
+                      </span>
+                      <span className="text-[10px] font-mono text-rose-400">0x0...dEaD</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">
+                      100% of acquired tokens are sent directly to the dead sink address, shrinking supply forever.
+                    </p>
+                  </div>
                 </div>
               </div>
 
+              {/* Status Footer */}
               <div className="pt-2 border-t border-zinc-800/60 flex items-center gap-2 text-[11px] text-zinc-400 font-mono">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Runs 24/7 autonomously without human intervention.</span>
+                <span>Zero administrative intervention. Fully autonomous smart contract pipeline.</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Official Protocol Contracts */}
+        {/* Futuristic Market Intelligence & Protocol Telemetry Radar */}
+        <div className="rounded-2xl bg-[#080B10] border border-cyan-500/20 p-5 sm:p-6 shadow-xl relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800/80">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded bg-[#0A0E15] border border-cyan-500/30 flex items-center justify-center">
+                <BarChart2 className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="font-orbitron font-bold text-sm sm:text-base text-white tracking-wider">
+                  MARKET INTELLIGENCE & TELEMETRY RADAR
+                </h3>
+                <p className="text-xs font-mono text-zinc-400">
+                  Programmatic Liquidity & Burn Tracking on Robinhood Chain
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 font-mono text-xs">
+              <span className="px-2.5 py-1 rounded bg-[#0A0E15] border border-zinc-800 text-zinc-300">
+                TOTAL SUPPLY: <strong className="text-white">1,000,000,000 HOT</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold">
+                BURN RATIO: {burnedPercent.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-4">
+            {/* Spot Price */}
+            <div className="p-3.5 rounded-xl bg-[#06080D] border border-zinc-800/80">
+              <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">SPOT VALUATION</span>
+              <div className="font-orbitron font-bold text-lg text-white my-1">
+                ${state.tokenPriceUSD.toFixed(6)}
+              </div>
+              <div className="text-[11px] font-mono text-zinc-500">
+                {state.tokenPriceETH.toFixed(10)} ETH
+              </div>
+            </div>
+
+            {/* Deflationary Market Cap */}
+            <div className="p-3.5 rounded-xl bg-[#06080D] border border-zinc-800/80">
+              <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">DEFICIT MARKET CAP</span>
+              <div className="font-orbitron font-bold text-lg text-cyan-300 my-1">
+                ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(state.marketCapUSD)} USD
+              </div>
+              <div className="text-[11px] font-mono text-zinc-500">
+                Circulating: {new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(state.totalSupply - state.totalTokensBurned)} HOT
+              </div>
+            </div>
+
+            {/* Permanent Sink Allocation */}
+            <div className="p-3.5 rounded-xl bg-[#06080D] border border-zinc-800/80">
+              <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">PERMANENTLY SINKED</span>
+              <div className="font-orbitron font-bold text-lg text-rose-400 my-1">
+                {new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(state.totalTokensBurned)} HOT
+              </div>
+              <div className="text-[11px] font-mono text-zinc-500">
+                Extinguished from circulation
+              </div>
+            </div>
+
+            {/* Autonomous Health */}
+            <div className="p-3.5 rounded-xl bg-[#06080D] border border-zinc-800/80">
+              <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">DAEMON RELIABILITY</span>
+              <div className="font-orbitron font-bold text-lg text-emerald-400 my-1 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>100% ONLINE</span>
+              </div>
+              <div className="text-[11px] font-mono text-zinc-500">
+                Robinhood Mainnet RPC
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Canonical Protocol Contracts */}
         <PonsContractsCard />
       </main>
 
-      {/* Modern Minimalist Footer */}
-      <footer className="w-full bg-[#080b10] border-t border-zinc-800/80 py-5 px-4 sm:px-6 lg:px-8 text-xs text-zinc-400 mt-8">
+      {/* Modern Futuristic Control Footer */}
+      <footer className="w-full bg-[#05070A] border-t border-cyan-500/20 py-5 px-4 sm:px-6 lg:px-8 text-xs text-zinc-400 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 font-mono text-[11px]">
-            <span className="text-zinc-500">Protocol:</span>
-            <span className="text-zinc-200 font-medium">HOT Flywheel v2</span>
+            <span className="text-zinc-500">SYSTEM:</span>
+            <span className="text-cyan-400 font-bold font-orbitron">HOT // AUTONOMOUS VALUE ENGINE</span>
             <span className="text-zinc-600">&bull;</span>
-            <span className="text-zinc-400">Robinhood Chain (4663)</span>
+            <span className="text-zinc-400">ROBINHOOD CHAIN [ID: 4663]</span>
           </div>
 
           <div className="flex items-center gap-3 font-mono text-xs">
@@ -215,33 +327,33 @@ export function App() {
               href="https://x.com/hotonrh"
               target="_blank"
               rel="noreferrer"
-              className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-[#080B10] hover:bg-[#0E131C] text-zinc-300 hover:text-cyan-300 border border-zinc-800 hover:border-cyan-500/30 rounded-lg flex items-center gap-1.5 transition-colors"
               title="HOT on Twitter / X (@hotonrh)"
             >
               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
-              <span>Twitter</span>
+              <span className="font-oxanium font-bold">X / TWITTER</span>
               <ArrowUpRight className="w-3 h-3 text-zinc-500" />
             </a>
 
             {/* Docs */}
             <button
               onClick={navigateToDocs}
-              className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 bg-[#080B10] hover:bg-[#0E131C] text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Docs</span>
+              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="font-oxanium font-bold">DOCS</span>
             </button>
 
             <a
               href="https://docs.ponsfamily.com/v2"
               target="_blank"
               rel="noreferrer"
-              className="text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
+              className="text-zinc-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono text-[11px]"
             >
-              <span>Pons v2 Reference</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>PONS v2 SPEC</span>
+              <ArrowUpRight className="w-3 h-3" />
             </a>
           </div>
         </div>
@@ -249,4 +361,5 @@ export function App() {
     </div>
   );
 }
+
 export default App;

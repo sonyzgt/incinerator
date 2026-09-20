@@ -177,9 +177,9 @@ export const DocsPage: React.FC<DocsPageProps> = ({ config, onNavigateHome }) =>
   const [activeCodeTab, setActiveCodeTab] = useState<'cycle' | 'abi' | 'reactive' | 'bot'>('cycle');
   const [copiedCode, setCopiedCode] = useState(false);
   return (
-    <div className="min-h-screen bg-[#0f141d] text-slate-100 flex flex-col font-hand selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-[#05070A] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Top Navbar */}
-      <header className="w-full bg-[#111722] border-b-2 border-slate-700/80 sticky top-0 z-40 px-4 sm:px-8 py-3 shadow-md">
+      <header className="w-full bg-[#080B10] border-b border-cyan-500/20 sticky top-0 z-40 px-4 sm:px-8 py-3 shadow-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#fbbf24] text-black border-2 border-black flex items-center justify-center -rotate-2 shadow-[2px_2px_0px_#000]">

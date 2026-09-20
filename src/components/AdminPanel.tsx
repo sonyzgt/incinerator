@@ -299,9 +299,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1219] text-slate-100 flex flex-col font-hand selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-[#05070A] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Admin Top Navigation */}
-      <header className="w-full bg-[#131924] border-b-2 border-slate-700/80 px-4 sm:px-8 py-3 shadow-md sticky top-0 z-40">
+      <header className="w-full bg-[#080B10] border-b border-cyan-500/20 px-4 sm:px-8 py-3 shadow-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button

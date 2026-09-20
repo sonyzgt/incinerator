@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coins, Flame, ShoppingBag, BarChart3, ArrowUpRight } from 'lucide-react';
+import { Activity, Flame, Coins, ShoppingBag, ShieldCheck, Zap, Layers } from 'lucide-react';
 import { FlywheelState } from '../types';
 
 interface MetricsOverviewProps {
@@ -14,134 +14,138 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
   const burnedPercent = state.burnedPercentageOfSupply > 0 ? state.burnedPercentageOfSupply : 11.53;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full">
-      {/* 1. TOTAL FEES CLAIMED */}
-      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-            Total Fees Claimed
-          </span>
-          <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center shrink-0">
-            <Coins className="w-4 h-4" />
-          </div>
+    <div className="w-full bg-[#080B10] border border-cyan-500/20 rounded-xl overflow-hidden shadow-lg">
+      {/* Telemetry Strip Banner */}
+      <div className="bg-[#05070A] border-b border-zinc-800/80 px-4 py-1.5 flex items-center justify-between text-[10px] font-mono">
+        <div className="flex items-center gap-2 text-zinc-400">
+          <Activity className="w-3 h-3 text-cyan-400 animate-pulse" />
+          <span className="font-oxanium text-cyan-400 font-bold uppercase tracking-wider">LIVE TELEMETRY STREAM</span>
+          <span className="text-zinc-600">//</span>
+          <span className="text-zinc-400">PONS PROTOCOL ON-CHAIN SYNC</span>
         </div>
-
-        <div className="my-3">
-          <div className="flex items-baseline gap-1.5 font-mono">
-            <span className="text-2xl font-bold tracking-tight text-white">
-              {state.totalFeesClaimedETH.toFixed(4)}
-            </span>
-            <span className="text-xs font-semibold text-orange-400">ETH</span>
-          </div>
-          <div className="text-xs font-mono text-zinc-400 mt-0.5">
-            ≈ ${formatNumber(state.totalFeesClaimedUSD)} USD
-          </div>
-        </div>
-
-        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
-          <span className="text-zinc-500">Escrow Waiting:</span>
-          <span className="text-orange-300 font-medium">
-            {state.currentEscrowBalanceETH.toFixed(4)} ETH
+        <div className="flex items-center gap-3 text-zinc-500">
+          <span>CYCLES: <strong className="text-white font-mono">{state.cycleCount}</strong></span>
+          <span className="text-zinc-700">|</span>
+          <span className="text-emerald-400 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            FEED: NORMAL
           </span>
         </div>
       </div>
 
-      {/* 2. TOTAL BUYBACK VOLUME */}
-      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-            Buyback Volume
-          </span>
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-4 h-4" />
+      {/* Main Telemetry Instruments Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-zinc-800/60">
+        {/* 1. TOTAL FEES CLAIMED */}
+        <div className="p-3.5 sm:p-4 bg-[#080B10]/90 flex flex-col justify-between group hover:bg-[#0A0E15] transition-colors relative">
+          <div className="flex items-center justify-between text-[10px] font-oxanium tracking-wider text-zinc-400 uppercase">
+            <span>SYS.FEE_CLAIMED</span>
+            <span className="text-cyan-400 text-[9px] font-mono">01</span>
           </div>
-        </div>
 
-        <div className="my-3">
-          <div className="flex items-baseline gap-1.5 font-mono">
-            <span className="text-2xl font-bold tracking-tight text-white">
-              {formatNumber(state.totalTokensBoughtBack)}
-            </span>
-            <span className="text-xs font-semibold text-emerald-400">HOT</span>
-          </div>
-          <div className="text-xs font-mono text-zinc-400 mt-0.5">
-            100% Fees Converted via Curve
-          </div>
-        </div>
-
-        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
-          <span className="text-zinc-500">Autonomous Cycles:</span>
-          <span className="text-emerald-300 font-medium">
-            {state.cycleCount} Executed
-          </span>
-        </div>
-      </div>
-
-      {/* 3. TOTAL TOKENS BURNED */}
-      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-            Total Burned
-          </span>
-          <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
-            <Flame className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="my-3">
-          <div className="flex items-baseline gap-1.5 font-mono">
-            <span className="text-2xl font-bold tracking-tight text-white">
-              {formatNumber(state.totalTokensBurned)}
-            </span>
-            <span className="text-xs font-semibold text-rose-400">HOT</span>
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-orange-500 to-rose-500 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, burnedPercent)}%` }}
-              />
+          <div className="my-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+                {state.totalFeesClaimedETH.toFixed(4)}
+              </span>
+              <span className="text-[10px] font-oxanium text-cyan-400 font-bold">ETH</span>
             </div>
-            <span className="text-xs font-mono text-rose-400 font-medium">
-              {burnedPercent.toFixed(2)}%
+            <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+              ≈ ${formatNumber(state.totalFeesClaimedUSD)} USD
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] font-mono">
+            <span className="text-zinc-500">ESCROW WAITING:</span>
+            <span className="text-orange-400 font-semibold">{state.currentEscrowBalanceETH.toFixed(4)} ETH</span>
+          </div>
+        </div>
+
+        {/* 2. BUYBACK VOLUME */}
+        <div className="p-3.5 sm:p-4 bg-[#080B10]/90 flex flex-col justify-between group hover:bg-[#0A0E15] transition-colors relative">
+          <div className="flex items-center justify-between text-[10px] font-oxanium tracking-wider text-zinc-400 uppercase">
+            <span>SYS.BUYBACK_VOL</span>
+            <span className="text-emerald-400 text-[9px] font-mono">02</span>
+          </div>
+
+          <div className="my-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-emerald-300 transition-colors">
+                {formatNumber(state.totalTokensBoughtBack)}
+              </span>
+              <span className="text-[10px] font-oxanium text-emerald-400 font-bold">HOT</span>
+            </div>
+            <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+              100% REINVESTED ON CURVE
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] font-mono">
+            <span className="text-zinc-500">EXECUTION:</span>
+            <span className="text-emerald-400 font-semibold">{state.cycleCount} AUTONOMOUS</span>
+          </div>
+        </div>
+
+        {/* 3. TOTAL BURNED */}
+        <div className="p-3.5 sm:p-4 bg-[#080B10]/90 flex flex-col justify-between group hover:bg-[#0A0E15] transition-colors relative">
+          <div className="flex items-center justify-between text-[10px] font-oxanium tracking-wider text-zinc-400 uppercase">
+            <span>SYS.INCINERATED</span>
+            <span className="text-rose-400 text-[9px] font-mono">03</span>
+          </div>
+
+          <div className="my-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-rose-400 group-hover:text-rose-300 transition-colors">
+                {formatNumber(state.totalTokensBurned)}
+              </span>
+              <span className="text-[10px] font-oxanium text-rose-400 font-bold">HOT</span>
+            </div>
+
+            {/* Cyber Segment Progress Indicator */}
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <div className="flex-1 h-1 bg-zinc-800 rounded-none overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-orange-500 to-rose-500 transition-all duration-700"
+                  style={{ width: `${Math.min(100, burnedPercent)}%` }}
+                />
+              </div>
+              <span className="text-[10px] font-mono text-rose-400 font-bold">
+                {burnedPercent.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] font-mono">
+            <span className="text-zinc-500">DEAD SINK:</span>
+            <span className="text-zinc-300 font-semibold">0x0...dEaD</span>
+          </div>
+        </div>
+
+        {/* 4. MARKET VALUATION & POOL */}
+        <div className="p-3.5 sm:p-4 bg-[#080B10]/90 flex flex-col justify-between group hover:bg-[#0A0E15] transition-colors relative">
+          <div className="flex items-center justify-between text-[10px] font-oxanium tracking-wider text-zinc-400 uppercase">
+            <span>SYS.MARKET_CAP</span>
+            <span className="text-cyan-400 text-[9px] font-mono">04</span>
+          </div>
+
+          <div className="my-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+                ${formatNumber(state.marketCapUSD)}
+              </span>
+              <span className="text-[10px] font-oxanium text-cyan-400 font-bold">USD</span>
+            </div>
+            <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+              ${state.tokenPriceUSD.toFixed(6)} / HOT
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] font-mono">
+            <span className="text-zinc-500">BONDING CURVE:</span>
+            <span className="text-cyan-400 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+              ROBINHOOD DEX
             </span>
           </div>
-        </div>
-
-        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
-          <span className="text-zinc-500">Dead Sink:</span>
-          <span className="text-rose-300 font-medium">0x0...dEaD</span>
-        </div>
-      </div>
-
-      {/* 4. MARKET CAPITALIZATION */}
-      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-            Market Cap & Price
-          </span>
-          <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center shrink-0">
-            <BarChart3 className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="my-3">
-          <div className="flex items-baseline gap-1.5 font-mono">
-            <span className="text-2xl font-bold tracking-tight text-white">
-              ${formatNumber(state.marketCapUSD)}
-            </span>
-            <span className="text-xs font-semibold text-sky-400">USD</span>
-          </div>
-          <div className="text-xs font-mono text-zinc-400 mt-0.5">
-            ${state.tokenPriceUSD.toFixed(6)} / HOT
-          </div>
-        </div>
-
-        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
-          <span className="text-zinc-500">Pons Curve DEX:</span>
-          <span className="text-sky-300 font-medium flex items-center gap-0.5">
-            Active Pool <ArrowUpRight className="w-3 h-3" />
-          </span>
         </div>
       </div>
     </div>

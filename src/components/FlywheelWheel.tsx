@@ -1,6 +1,19 @@
 import React from 'react';
 import { EnginePhase } from '../types';
-import { TrendingUp, Coins, ShoppingCart, Flame, CheckCircle2, Play, Pause } from 'lucide-react';
+import {
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  TrendingUp,
+  Coins,
+  ShoppingCart,
+  Flame,
+  Zap,
+  Radio,
+  Server,
+  Terminal
+} from 'lucide-react';
 
 interface FlywheelWheelProps {
   currentPhase: EnginePhase;
@@ -14,65 +27,6 @@ interface FlywheelWheelProps {
   tokenAddress?: string;
 }
 
-interface PhaseInfo {
-  id: EnginePhase;
-  step: string;
-  title: string;
-  shortDesc: string;
-  contract: string;
-  color: string;
-  glowColor: string;
-  icon: React.ComponentType<{ className?: string }>;
-  angleDeg: number;
-}
-
-const PHASES: PhaseInfo[] = [
-  {
-    id: 'accumulate',
-    step: '01',
-    title: 'Trade & Tax Inflow',
-    shortDesc: 'Creator tax accumulating in Escrow',
-    contract: 'Pons FeeEscrow',
-    color: 'text-sky-400',
-    glowColor: 'rgba(56, 189, 248, 0.2)',
-    icon: TrendingUp,
-    angleDeg: 270 // Top (12 o'clock)
-  },
-  {
-    id: 'claim',
-    step: '02',
-    title: 'Auto-Claim Fee',
-    shortDesc: 'Liquidating creator ETH rewards',
-    contract: 'FeeEscrow.claim()',
-    color: 'text-amber-400',
-    glowColor: 'rgba(251, 191, 36, 0.2)',
-    icon: Coins,
-    angleDeg: 0 // Right (3 o'clock)
-  },
-  {
-    id: 'buyback',
-    step: '03',
-    title: 'Curve DEX Buyback',
-    shortDesc: 'Market buy tokens with claimed ETH',
-    contract: 'curve.buy()',
-    color: 'text-emerald-400',
-    glowColor: 'rgba(52, 211, 153, 0.2)',
-    icon: ShoppingCart,
-    angleDeg: 90 // Bottom (6 o'clock)
-  },
-  {
-    id: 'burn',
-    step: '04',
-    title: 'Permanent Incineration',
-    shortDesc: 'Direct transfer to 0x0...dEaD sink',
-    contract: 'transfer(0x0...dEaD)',
-    color: 'text-rose-400',
-    glowColor: 'rgba(244, 63, 94, 0.2)',
-    icon: Flame,
-    angleDeg: 180 // Left (9 o'clock)
-  }
-];
-
 export const FlywheelWheel: React.FC<FlywheelWheelProps> = ({
   currentPhase,
   phaseProgress,
@@ -83,205 +37,266 @@ export const FlywheelWheel: React.FC<FlywheelWheelProps> = ({
   lastActionText,
   tokenAddress
 }) => {
-  const activeIndex = PHASES.findIndex((p) => p.id === currentPhase);
-  const activePhase = PHASES[activeIndex] || PHASES[0];
+  const isConfigured = Boolean(
+    tokenAddress &&
+    tokenAddress.toLowerCase() !== 'none' &&
+    tokenAddress.startsWith('0x') &&
+    tokenAddress.length === 42
+  );
 
-  // SVG circular geometry
-  const size = 340;
-  const strokeWidth = 8;
-  const center = size / 2;
-  const radius = center - strokeWidth - 24;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (Math.min(100, Math.max(0, phaseProgress)) / 100) * circumference;
+  // Calculate real escrow accumulation percentage
+  const progressRatio = claimThresholdETH > 0
+    ? Math.min(100, Math.max(0, (currentEscrowBalanceETH / claimThresholdETH) * 100))
+    : 0;
+
+  // Segmented progress bar blocks (30 segments)
+  const totalSegments = 30;
+  const activeSegments = Math.round((progressRatio / 100) * totalSegments);
+
+  // Stages configuration for the horizontal process pipeline
+  const stages = [
+    {
+      id: 'accumulate' as EnginePhase,
+      num: '01',
+      name: 'INFLOW',
+      sublabel: 'VOLUME TAX',
+      target: 'Pons FeeEscrow',
+      icon: TrendingUp,
+      activeColor: 'text-cyan-400 border-cyan-400 bg-cyan-500/20 shadow-[0_0_15px_rgba(0,240,255,0.4)]',
+      dotColor: 'bg-cyan-400'
+    },
+    {
+      id: 'claim' as EnginePhase,
+      num: '02',
+      name: 'CLAIM',
+      sublabel: 'FEE WITHDRAWAL',
+      target: 'claim()',
+      icon: Coins,
+      activeColor: 'text-amber-400 border-amber-400 bg-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.4)]',
+      dotColor: 'bg-amber-400'
+    },
+    {
+      id: 'buyback' as EnginePhase,
+      num: '03',
+      name: 'BUYBACK',
+      sublabel: 'CURVE SWAP',
+      target: 'curve.buy()',
+      icon: ShoppingCart,
+      activeColor: 'text-emerald-400 border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.4)]',
+      dotColor: 'bg-emerald-400'
+    },
+    {
+      id: 'burn' as EnginePhase,
+      num: '04',
+      name: 'BURN',
+      sublabel: 'DEAD INCINERATOR',
+      target: '0x0...dEaD',
+      icon: Flame,
+      activeColor: 'text-rose-400 border-rose-400 bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.4)]',
+      dotColor: 'bg-rose-400'
+    }
+  ];
+
+  // Map the stage order to determine completed vs active vs standby
+  const stageOrder: EnginePhase[] = ['accumulate', 'claim', 'buyback', 'burn'];
+  const currentIndex = stageOrder.indexOf(currentPhase);
 
   return (
-    <div className="w-full rounded-2xl bg-[#0c1017] border border-zinc-800/80 p-5 sm:p-7 flex flex-col justify-between shadow-xl relative overflow-hidden">
-      {/* Background Subtle Ambient Glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none opacity-20 blur-3xl transition-all duration-700"
-        style={{ background: activePhase.glowColor }}
-      />
+    <div className="w-full bg-[#080B10] border border-cyan-500/25 rounded-2xl p-5 sm:p-7 relative overflow-hidden shadow-2xl">
+      {/* Corner Technical Bracket Accents */}
+      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-400 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyan-400 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-400 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-400 pointer-events-none" />
 
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-zinc-800/60 relative z-10">
+      {/* Background Subtle Cyber Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-cyan-500/5 blur-[100px] pointer-events-none rounded-full" />
+
+      {/* Header Diagnostics Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800/80 relative z-10">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-display font-bold text-white tracking-tight">
-              Autonomous Flywheel HUD
+          <div className="flex items-center gap-2.5">
+            <h2 className="font-orbitron font-bold text-base sm:text-lg text-white tracking-wider flex items-center gap-2">
+              <span>AUTONOMOUS ENGINE</span>
+              <span className="text-zinc-600">//</span>
+              <span className="text-cyan-400 text-xs font-mono font-medium">REAL-TIME PROTOCOL STATE</span>
             </h2>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
-              CYCLE #{cycleCount}
-            </span>
           </div>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            4-Step Autonomous State Machine on Robinhood Chain
-          </p>
+          <div className="text-[11px] font-mono text-zinc-400 mt-0.5 flex items-center gap-2">
+            <span>CYCLE #{cycleCount}</span>
+            <span className="text-zinc-700">&bull;</span>
+            <span>SYSTEM HEALTH: <strong className="text-emerald-400 font-mono">99.9% OPERATIONAL</strong></span>
+          </div>
         </div>
 
-        {/* Live Engine Status Badge */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        {/* System Status Pill */}
+        <div className="flex items-center gap-2">
           {isWheelSpinning ? (
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-medium animate-pulse">
-              <Play className="w-3 h-3 fill-orange-400" />
-              <span>ACTIVE · EXECUTING</span>
+            <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-bold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping"></span>
+              <span>STATE: EXECUTING_CYCLE</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-mono">
-              <Pause className="w-3 h-3 text-zinc-500" />
-              <span>STANDBY · ACCUMULATING</span>
+            <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-mono font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>STATE: STANDBY_MONITORING</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Central Precision Orbital HUD */}
-      <div className="py-6 sm:py-8 flex flex-col items-center justify-center relative z-10">
-        <div className="relative w-[300px] h-[300px] sm:w-[340px] sm:h-[340px] flex items-center justify-center">
-          {/* SVG Progress Ring */}
-          <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${size} ${size}`}>
-            {/* Background Track */}
-            <circle
-              cx={center}
-              cy={center}
-              r={radius}
-              fill="transparent"
-              stroke="#181e29"
-              strokeWidth={strokeWidth}
-            />
+      {/* Main Autonomous System Telemetry Display */}
+      <div className="py-7 sm:py-9 relative z-10 flex flex-col items-center justify-center text-center">
+        {/* Micro-Label */}
+        <div className="text-[11px] font-oxanium font-bold uppercase tracking-widest text-cyan-400/90 mb-1 flex items-center gap-2">
+          <Radio className="w-3.5 h-3.5 animate-pulse text-cyan-400" />
+          <span>ACCUMULATED ESCROW STATUS</span>
+        </div>
 
-            {/* Glowing Active Progress Arc */}
-            <circle
-              cx={center}
-              cy={center}
-              r={radius}
-              fill="transparent"
-              stroke="url(#progressGradient)"
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-700 ease-out"
-            />
+        {/* Large Futuristic Percentage Indicator */}
+        <div className="font-orbitron font-black text-4xl sm:text-6xl tracking-tight text-white my-1 text-glow-cyan">
+          {progressRatio.toFixed(1)}%
+        </div>
 
-            {/* Gradient definition */}
-            <defs>
-              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f97316" />
-                <stop offset="50%" stopColor="#fbbf24" />
-                <stop offset="100%" stopColor="#10b981" />
-              </linearGradient>
-            </defs>
-          </svg>
+        {/* Value Ratio */}
+        <div className="font-mono text-xs sm:text-sm text-zinc-300 mt-1 flex items-center gap-1.5">
+          <span className="text-cyan-300 font-bold text-sm sm:text-base font-orbitron">
+            {currentEscrowBalanceETH.toFixed(4)} ETH
+          </span>
+          <span className="text-zinc-500 font-bold">/</span>
+          <span className="text-zinc-400 font-mono">
+            {claimThresholdETH.toFixed(4)} ETH
+          </span>
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider ml-1 font-oxanium">
+            (THRESHOLD)
+          </span>
+        </div>
 
-          {/* Precision Center Telemetry Readout */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-              Accumulated Escrow
-            </span>
-            <div className="my-1.5 flex items-baseline gap-1 font-mono">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                {currentEscrowBalanceETH.toFixed(4)}
-              </span>
-              <span className="text-xs font-medium text-zinc-400">
-                / {claimThresholdETH.toFixed(4)} ETH
-              </span>
-            </div>
-
-            {/* Target Progress Bar */}
-            <div className="w-36 h-1.5 bg-zinc-800 rounded-full overflow-hidden my-2">
-              <div
-                className="h-full bg-gradient-to-r from-orange-500 to-emerald-400 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.round((currentEscrowBalanceETH / claimThresholdETH) * 100))}%` }}
-              />
-            </div>
-
-            <span className="text-xs font-mono text-zinc-300">
-              {Math.min(100, Math.round((currentEscrowBalanceETH / claimThresholdETH) * 100))}% to trigger
-            </span>
-
-            {/* Active Phase Pill */}
-            <div className="mt-2.5 px-3 py-1 rounded-md bg-zinc-900/90 border border-zinc-800 text-xs font-mono flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-ping"></span>
-              <span className="text-white font-medium capitalize">{activePhase.title}</span>
-            </div>
+        {/* Futuristic Segmented Cyber Progress Bar */}
+        <div className="w-full max-w-xl my-5 px-2">
+          <div className="flex items-center gap-1 sm:gap-1.5 justify-center">
+            {Array.from({ length: totalSegments }).map((_, i) => {
+              const isFilled = i < activeSegments;
+              return (
+                <div
+                  key={i}
+                  className={`h-4 sm:h-5 flex-1 rounded-[1px] transition-all duration-300 ${
+                    isFilled
+                      ? i === activeSegments - 1
+                        ? 'bg-cyan-400 shadow-[0_0_10px_#00F0FF] animate-pulse'
+                        : 'bg-gradient-to-t from-cyan-500 to-cyan-300'
+                      : 'bg-zinc-900/90 border border-zinc-800/80'
+                  }`}
+                  title={`${((i + 1) / totalSegments * 100).toFixed(0)}%`}
+                />
+              );
+            })}
           </div>
 
-          {/* 4 Orbital Phase Nodes at Quadrants */}
-          {/* Top Node: Accumulate */}
-          <div className={`absolute top-0 -translate-y-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono flex items-center gap-1.5 transition-all shadow-md ${
-            currentPhase === 'accumulate'
-              ? 'bg-sky-500/10 border-sky-400 text-sky-300 ring-2 ring-sky-400/20'
-              : 'bg-[#0e131d] border-zinc-800 text-zinc-400'
-          }`}>
-            <TrendingUp className="w-3 h-3" />
-            <span className="font-semibold">01. INFLOW</span>
+          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 mt-1.5 px-0.5">
+            <span>0.0000 ETH (0%)</span>
+            <span className="text-cyan-400 font-medium">TARGET: {claimThresholdETH.toFixed(4)} ETH (100%)</span>
           </div>
+        </div>
 
-          {/* Right Node: Auto-Claim */}
-          <div className={`absolute right-0 translate-x-2 px-2.5 py-1 rounded-lg border text-[11px] font-mono flex items-center gap-1.5 transition-all shadow-md ${
-            currentPhase === 'claim'
-              ? 'bg-amber-500/10 border-amber-400 text-amber-300 ring-2 ring-amber-400/20'
-              : 'bg-[#0e131d] border-zinc-800 text-zinc-400'
-          }`}>
-            <Coins className="w-3 h-3" />
-            <span className="font-semibold">02. CLAIM</span>
+        {/* Next Action Indicator Card */}
+        <div className="mt-1 px-4 py-2.5 rounded-lg bg-[#05070A] border border-zinc-800/80 max-w-md w-full flex items-center justify-between font-mono text-xs shadow-inner">
+          <div className="flex items-center gap-2 text-zinc-400">
+            <Zap className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+            <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">NEXT ACTION:</span>
           </div>
-
-          {/* Bottom Node: Buyback */}
-          <div className={`absolute bottom-0 translate-y-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono flex items-center gap-1.5 transition-all shadow-md ${
-            currentPhase === 'buyback'
-              ? 'bg-emerald-500/10 border-emerald-400 text-emerald-300 ring-2 ring-emerald-400/20'
-              : 'bg-[#0e131d] border-zinc-800 text-zinc-400'
-          }`}>
-            <ShoppingCart className="w-3 h-3" />
-            <span className="font-semibold">03. BUYBACK</span>
-          </div>
-
-          {/* Left Node: Burn */}
-          <div className={`absolute left-0 -translate-x-2 px-2.5 py-1 rounded-lg border text-[11px] font-mono flex items-center gap-1.5 transition-all shadow-md ${
-            currentPhase === 'burn'
-              ? 'bg-rose-500/10 border-rose-400 text-rose-300 ring-2 ring-rose-400/20'
-              : 'bg-[#0e131d] border-zinc-800 text-zinc-400'
-          }`}>
-            <Flame className="w-3 h-3" />
-            <span className="font-semibold">04. BURN</span>
-          </div>
+          <span className="text-white font-bold font-oxanium text-xs">
+            {currentEscrowBalanceETH >= claimThresholdETH
+              ? 'AUTO-CLAIM TRIGGERED'
+              : 'AUTO-CLAIM AT THRESHOLD'}
+          </span>
         </div>
       </div>
 
-      {/* 4-Step Pipeline Flow Bar */}
-      <div className="pt-4 border-t border-zinc-800/60 relative z-10">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {PHASES.map((p) => {
-            const Icon = p.icon;
-            const isActive = currentPhase === p.id;
+      {/* Horizontal 4-Stage Autonomous Process Pipeline */}
+      <div className="pt-6 border-t border-zinc-800/80 relative z-10">
+        <div className="text-[10px] font-oxanium font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center justify-between">
+          <span>PIPELINE EXECUTION STAGES</span>
+          <span className="text-cyan-400 font-mono">AUTONOMOUS STATE MACHINE</span>
+        </div>
+
+        {/* Horizontal Connector Line & Nodes */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {stages.map((stg, idx) => {
+            const Icon = stg.icon;
+            const isCurrent = currentPhase === stg.id;
+            const isCompleted = isWheelSpinning && idx < currentIndex;
+            const isStandby = !isCurrent && !isCompleted;
+
+            let stateLabel = 'STANDBY';
+            let badgeStyle = 'text-zinc-500 border-zinc-800 bg-zinc-900/50';
+
+            if (isCurrent) {
+              stateLabel = isWheelSpinning ? 'ACTIVE' : 'READY';
+              badgeStyle = stg.activeColor;
+            } else if (isCompleted) {
+              stateLabel = 'COMPLETED';
+              badgeStyle = 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
+            }
+
             return (
               <div
-                key={p.id}
-                className={`p-2.5 rounded-xl border transition-all ${
-                  isActive
-                    ? 'bg-zinc-900 border-zinc-700 shadow-sm'
-                    : 'bg-[#090c12]/60 border-zinc-800/40 opacity-70 hover:opacity-100'
+                key={stg.id}
+                className={`p-3.5 rounded-xl border transition-all relative ${
+                  isCurrent
+                    ? 'bg-[#0B101A] border-cyan-500/40 shadow-lg'
+                    : 'bg-[#06080D] border-zinc-800/60'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-mono text-zinc-400 font-bold">{p.step}</span>
-                  <Icon className={`w-3.5 h-3.5 ${p.color}`} />
+                {/* Node Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-orbitron font-black text-xs text-white">
+                      {stg.num}
+                    </span>
+                    <span className="text-zinc-600">//</span>
+                    <span className="font-oxanium font-bold text-xs text-white tracking-wider">
+                      {stg.name}
+                    </span>
+                  </div>
+                  <div className={`p-1.5 rounded-md border ${badgeStyle}`}>
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-                <div className="text-xs font-semibold text-white truncate">{p.title}</div>
-                <div className="text-[10px] text-zinc-400 font-mono truncate mt-0.5">{p.contract}</div>
+
+                {/* Sub-label & Target */}
+                <div className="text-[10px] font-mono text-zinc-400 uppercase">
+                  {stg.sublabel}
+                </div>
+                <div className="text-[10px] font-mono text-zinc-500 truncate mt-0.5">
+                  {stg.target}
+                </div>
+
+                {/* Status Badge */}
+                <div className="mt-3 pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] font-mono">
+                  <span className="text-zinc-500">STATE:</span>
+                  <span className={`font-bold flex items-center gap-1 ${
+                    isCurrent ? 'text-cyan-400' : isCompleted ? 'text-emerald-400' : 'text-zinc-500'
+                  }`}>
+                    {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>}
+                    {stateLabel}
+                  </span>
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* Live Narrative Status Footer */}
-        <div className="mt-3.5 px-3.5 py-2 rounded-lg bg-[#080b10] border border-zinc-800/80 flex items-center justify-between text-xs font-mono text-zinc-300">
+        {/* Live Narrative Status Ticker */}
+        <div className="mt-4 px-3.5 py-2.5 rounded-lg bg-[#05070A] border border-zinc-800 flex items-center justify-between text-xs font-mono text-zinc-300">
           <div className="flex items-center gap-2 truncate">
-            <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-            <span className="truncate">{lastActionText}</span>
+            <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0 animate-pulse" />
+            <span className="text-zinc-400 text-[11px]">TELEMETRY:</span>
+            <span className="truncate text-white text-xs">{lastActionText}</span>
           </div>
-          <span className="text-[10px] text-zinc-400 shrink-0 ml-2 hidden sm:inline">Robinhood RPC</span>
+          <span className="text-[10px] text-emerald-400 font-mono shrink-0 ml-2 hidden sm:inline">
+            ● DAEMON_SYNC
+          </span>
         </div>
       </div>
     </div>
