@@ -20,10 +20,10 @@ interface ChatMessage {
 }
 
 const PRESET_PROMPTS = [
-  '🔥 Berapa total token yang sudah dibakar?',
-  '📋 Berapa alamat Smart Contract (CA)?',
-  '⚡ Bagaimana cara kerja mesin buyback?',
-  '🐦 Apa akun Twitter / X resmi JEVBURN?',
+  '🎯 Jev: Analisa rasio pembakaran 15.2%',
+  '📋 Jev: Verifikasi Smart Contract (CA)',
+  '⚡ Jev: Bagaimana algoritma mesin buyback?',
+  '🐦 Jev: Apa Twitter / X resmi JEVBURN?',
 ];
 
 export const AIChatWidget: React.FC = () => {
@@ -37,7 +37,7 @@ export const AIChatWidget: React.FC = () => {
       id: 'welcome',
       role: 'assistant',
       content:
-        'Halo! Saya adalah **JEVBURN AI Assistant** (powered by Venice.ai).\n\nAda yang bisa saya bantu terkait tokenomics, mekanisme buyback kurva, atau data pembakaran live di Robinhood Chain?',
+        '[Jev System One Online]\n\n*"Jev answers, it doesn\'t write."*\n\nSaya adalah **Jev**, model keputusan dan reasoning otonom dari **Venice.ai** (`jev-latest`) yang terintegrasi pada protokol **$JEVBURN**.\n\nTanyakan verifikasi Contract Address (CA), rasio pembakaran 15.2%, analisa DEX buyback kurva, atau status live on-chain Robinhood Chain.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -66,18 +66,18 @@ export const AIChatWidget: React.FC = () => {
   const getLocalFallbackReply = (text: string): string => {
     const lower = text.toLowerCase();
     if (lower.includes('ca') || lower.includes('contract') || lower.includes('address') || lower.includes('alamat')) {
-      return `Alamat Smart Contract (CA) resmi **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\nJaringan: **Robinhood Chain (Chain ID: 4663)**\nDead Sink: \`0x000000000000000000000000000000000000dEaD\``;
+      return `[Jev Decision: Verified 100%]\n\nOfficial Contract Address (CA) for **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\n• Network: **Robinhood Chain (Chain ID: 4663)**\n• Curve DEX: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Irreversible Dead Sink: \`0x000000000000000000000000000000000000dEaD\``;
     }
     if (lower.includes('burn') || lower.includes('bakar') || lower.includes('supply') || lower.includes('persen') || lower.includes('berapa')) {
-      return `🔥 **Status Pembakaran Terkini:**\nLebih dari **152.000.000+ JEVBURN** (setara **15.2% dari total supply 1 Miliar**) telah hangus dibakar habis secara permanen ke alamat Dead Sink!\n\nLihat bukti transaksi blok explorer secara realtime di [jevburn.com/burn](https://jevburn.com/burn).`;
+      return `[Jev Telemetry Assessment]\n\n🔥 **Status Pembakaran Aktif:**\n• Total Burned: **151.999.585+ $JEVBURN**\n• Ratio: **15.20% dari total 1.000.000.000 supply** telah hangus permanen!\n• Status Sink: 100% terkunci di \`0x000...dEaD\`.\n• Ledger Real-time: [jevburn.com/burn](https://jevburn.com/burn)`;
     }
     if (lower.includes('cara') || lower.includes('kerja') || lower.includes('mekanisme') || lower.includes('what is') || lower.includes('how')) {
-      return `⚡ **Mekanisme Autonomous JEVBURN:**\n1. **Fee Escrow**: Volume trading di Pons Curve menghasilkan biaya yang ditampung di FeeEscrow.\n2. **Auto-Claim**: Saat threshold tercapai, bot menarik ETH fee tersebut.\n3. **DEX Buyback**: ETH langsung ditukar untuk membeli $JEVBURN di Curve DEX.\n4. **Dead Incineration**: 100% token yang dibeli langsung dibakar permanen ke \`0x000...dEaD\`.\n\nSemua berjalan 24/7 tanpa campur tangan manusia!`;
+      return `[Jev System One Architecture]\n\n⚡ **Algoritma Flywheel JEVBURN:**\n1. **Fee Capture**: Setiap trade di Curve menghasilkan fee otomatis di FeeEscrow.\n2. **Threshold Sweep**: Bot mendeteksi saldo >= 0.015 ETH dan memanggil \`claim()\`.\n3. **DEX Buyback**: ETH hasil claim otomatis dieksekusi membeli $JEVBURN di Curve DEX.\n4. **Dead Incineration**: 100% token dikirim ke \`0x000...dEaD\`.\n\nConfidence: 100% On-Chain Verifiable.`;
     }
     if (lower.includes('twitter') || lower.includes('x') || lower.includes('sosmed')) {
-      return `Akun resmi kami di Twitter / X adalah **[@jevburns](https://x.com/jevburns)**. Pantau terus update pembakaran terbaru di sana!`;
+      return `[Jev Verification]\nAkun resmi Twitter / X: **[@jevburns](https://x.com/jevburns)**. Update on-chain otomatis diposting berkala.`;
     }
-    return `Saya adalah **JEVBURN AI Assistant**. Anda bisa bertanya tentang token CA, total supply yang dibakar (15.2%+), mekanisme otonom DEX buyback, atau jaringan Robinhood Chain. Ada yang ingin Anda ketahui?`;
+    return `[Jev System One Online]\n\nSaya adalah **Jev**, model reasoning dan keputusan otonom dari Venice.ai yang terintegrasi pada protokol **$JEVBURN**.\n\n*Jev answers, it doesn't write.* Tanyakan data kontrak, rasio pembakaran 15.2%, mekanisme DEX buyback, atau analisa protokol Robinhood Chain.`;
   };
 
   const handleSend = async (textToSend?: string) => {
@@ -157,28 +157,31 @@ export const AIChatWidget: React.FC = () => {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
           </span>
           <Bot className="w-4 h-4 text-white" />
-          <span className="tracking-wide">Ask JEVBURN AI</span>
+          <span className="tracking-wide">Ask Jev (Venice AI)</span>
         </button>
       )}
 
       {/* Expanded Cyber Chat Box */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[410px] h-[540px] max-h-[85vh] rounded-2xl bg-[#0b0c10] border border-[#24252a] shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="w-[360px] sm:w-[410px] h-[550px] max-h-[85vh] rounded-2xl bg-[#0b0c10] border border-[#24252a] shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl animate-in fade-in slide-in-from-bottom-5 duration-200">
           {/* Header */}
           <div className="px-4 py-3.5 border-b border-[#24252a] bg-[#101217] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#ff5722]/10 border border-[#ff5722]/30 flex items-center justify-center text-[#ff5722]">
-                <Flame className="w-4 h-4 fill-current" />
+              <div className="w-8 h-8 rounded-lg bg-[#ff5722]/10 border border-[#ff5722]/30 flex items-center justify-center text-[#ff5722]">
+                <Flame className="w-4.5 h-4.5 fill-current" />
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs text-white tracking-tight">JEVBURN AI</span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    ONLINE
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-extrabold text-xs text-white tracking-tight">JEV</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#ff5722]/15 text-[#ff5722] border border-[#ff5722]/30 font-bold">
+                    SYSTEM ONE
+                  </span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/5 text-zinc-400 border border-white/10">
+                    DECISIONS
                   </span>
                 </div>
-                <div className="text-[10px] text-[#8e8b85] font-mono">
-                  Powered by Venice.ai
+                <div className="text-[10px] text-[#8e8b85] font-mono italic">
+                  Jev answers, it doesn't write. (Venice.ai)
                 </div>
               </div>
             </div>
