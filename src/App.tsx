@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFlywheelEngine } from './hooks/useFlywheelEngine';
 import { AdminPanel } from './components/AdminPanel';
-import { DocsPage } from './components/DocsPage';
 import { BurnPage } from './components/BurnPage';
 import { PONS_V2_CONFIG } from './contracts';
 import {
@@ -48,11 +47,6 @@ export function App() {
     setRoute('/');
   };
 
-  const navigateToDocs = () => {
-    window.history.pushState({}, '', '/docs');
-    setRoute('/docs');
-  };
-
   const navigateToBurn = () => {
     window.history.pushState({}, '', '/burn');
     setRoute('/burn');
@@ -80,16 +74,6 @@ export function App() {
         onSaveConfig={setConfig}
         onResetDefaults={resetConfigToDefaults}
         onTriggerCycle={runFlywheelExecution}
-        onNavigateHome={navigateToHome}
-      />
-    );
-  }
-
-  // Route: /docs -> Docs Page
-  if (route === '/docs') {
-    return (
-      <DocsPage
-        config={config}
         onNavigateHome={navigateToHome}
       />
     );
@@ -691,12 +675,6 @@ export function App() {
             className="hover:text-white transition-colors cursor-pointer text-[#ff5722]"
           >
             Burns (/burn)
-          </button>
-          <button
-            onClick={navigateToDocs}
-            className="hover:text-white transition-colors cursor-pointer"
-          >
-            Docs
           </button>
           <a
             href="https://x.com/hotonrh"
