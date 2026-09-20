@@ -64,38 +64,42 @@ export const AIChatWidget: React.FC = () => {
 
   // Local fallback response if backend /api/chat is not reachable
   const getLocalFallbackReply = (text: string): string => {
-    const hasWord = (words: string[]) => {
+    const hasAcronym = (words: string[]) => {
       const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
       return new RegExp(`(^|[^a-zA-Z0-9_])(${escaped})([^a-zA-Z0-9_]|$)`, 'i').test(text);
     };
+    const hasTerm = (terms: string[]) => {
+      const lower = text.toLowerCase();
+      return terms.some((t) => lower.includes(t));
+    };
 
     // 1. DCA (Dollar-Cost Averaging)
-    if (hasWord(['dca', 'dollar cost', 'dollar-cost', 'averaging'])) {
-      return `[Jev Decision: Verified 100%]\n\n📊 **Apa itu DCA (Dollar-Cost Averaging)?**\n**DCA** adalah strategi investasi di mana seseorang membeli aset secara berkala dengan nominal tetap tanpa memedulikan naik-turun harga sesaat (*market timing*). Tujuannya memperhalus harga beli rata-rata (*average entry*) dan meminimalkan risiko volatilitas.\n\n⚡ **Bagaimana $JEVBURN Mengadopsi DCA Otomatis?**\nProtokol $JEVBURN menjalankan **Algorithmic Continuous DCA Buyback**:\n1. Setiap trading di Curve DEX menghasilkan swap fee di FeeEscrow.\n2. Flywheel bot secara berkala melakukan eksekusi 'DCA Buyback' menggunakan akumulasi ETH fee untuk membeli token $JEVBURN dari market.\n3. 100% token hasil DCA buyback langsung dikirim ke \`0x000...dEaD\` untuk dimusnahkan permanen!`;
+    if (hasAcronym(['dca']) || hasTerm(['dollar cost', 'dollar-cost', 'averaging'])) {
+      return `[Jev Decision: Verified 100%]\n\n📊 **Apa itu DCA (Dollar-Cost Averaging)?**\n**DCA** adalah strategi investasi di mana seseorang membeli aset secara berkala dengan nominal tetap tanpa memedulikan fluktuasi harga sesaat (*market timing*). Tujuannya memperhalus harga beli rata-rata (*average entry*) dan meminimalkan risiko volatilitas.\n\n⚡ **Bagaimana $JEVBURN Mengadopsi DCA Otomatis?**\nProtokol $JEVBURN menjalankan **Algorithmic Continuous DCA Buyback**:\n1. Setiap trading di Curve DEX menghasilkan swap fee di FeeEscrow.\n2. Flywheel bot secara berkala melakukan eksekusi 'DCA Buyback' menggunakan akumulasi ETH fee untuk membeli token $JEVBURN dari market.\n3. 100% token hasil DCA buyback langsung dikirim ke \`0x000...dEaD\` untuk dimusnahkan permanen!`;
     }
 
-    // 2. Token Contract Address (CA)
-    if (hasWord(['ca', 'contract', 'address', 'alamat', 'token'])) {
-      return `[Jev Decision: Verified 100%]\n\nOfficial Contract Address (CA) for **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\n• Network: **Robinhood Chain (Chain ID: 4663)**\n• Curve DEX: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Irreversible Dead Sink: \`0x000000000000000000000000000000000000dEaD\`\n• Live Ledger: [jevburn.com/burn](https://jevburn.com/burn)`;
-    }
-
-    // 3. Burn / Supply Stats
-    if (hasWord(['burn', 'bakar', 'supply', 'persen', 'berapa', 'milestone', 'burned', 'hangus', 'deflasi'])) {
+    // 2. Burn / Supply Stats (Prioritas sebelum CA agar pertanyaan seperti "berapa token yang dibakar" masuk ke sini)
+    if (hasTerm(['burn', 'bakar', 'supply', 'persen', 'milestone', 'hangus', 'deflasi'])) {
       return `[Jev Telemetry Assessment]\n\n🔥 **Status Pembakaran Aktif:**\n• Total Burned: **151.999.585+ $JEVBURN**\n• Rasio Hangus: **15.20% dari total 1.000.000.000 supply** telah hangus selamanya!\n• Status Sink: 100% terkunci di \`0x000...dEaD\`.\n• Ledger Real-time: [jevburn.com/burn](https://jevburn.com/burn)`;
     }
 
-    // 4. Mechanism / How it works
-    if (hasWord(['cara', 'kerja', 'mekanisme', 'flywheel', 'how', 'what is', 'sistem', 'algoritma'])) {
+    // 3. Mechanism / How it works / How to buy
+    if (hasTerm(['cara', 'kerja', 'mekanisme', 'flywheel', 'how', 'what is', 'sistem', 'algoritma', 'beli', 'buy'])) {
       return `[Jev System One Architecture]\n\n⚡ **Algoritma Flywheel JEVBURN:**\n1. **Fee Capture**: Setiap trade di Curve menghasilkan fee otomatis di FeeEscrow.\n2. **Threshold Sweep**: Bot mendeteksi saldo >= 0.015 ETH dan memanggil \`claim()\`.\n3. **DEX Buyback**: ETH hasil claim otomatis dieksekusi membeli $JEVBURN di Curve DEX.\n4. **Dead Incineration**: 100% token dikirim ke \`0x000...dEaD\`.\n\nConfidence: 100% On-Chain Verifiable.`;
     }
 
+    // 4. Token Contract Address (CA)
+    if (hasAcronym(['ca', 'sc']) || hasTerm(['contract', 'address', 'alamat'])) {
+      return `[Jev Decision: Verified 100%]\n\nOfficial Contract Address (CA) for **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\n• Network: **Robinhood Chain (Chain ID: 4663)**\n• Curve DEX: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Irreversible Dead Sink: \`0x000000000000000000000000000000000000dEaD\`\n• Live Ledger: [jevburn.com/burn](https://jevburn.com/burn)`;
+    }
+
     // 5. Liquidity & DEX Pool
-    if (hasWord(['liquidity', 'lp', 'pool', 'curve', 'dex'])) {
+    if (hasTerm(['liquidity', 'lp', 'pool', 'curve', 'dex'])) {
       return `[Jev Liquidity Analysis]\n\n💧 **Curve DEX Pool $JEVBURN:**\n• Pool Contract: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Pairing: **JEVBURN / WETH**\n• Semua swap menghasilkan protokol fee yang 100% dialokasikan untuk sweep & burn.`;
     }
 
     // 6. Social Media
-    if (hasWord(['twitter', 'x', 'sosmed', 'komunitas', 'telegram'])) {
+    if (hasTerm(['twitter', 'sosmed', 'komunitas', 'telegram']) || hasAcronym(['x'])) {
       return `[Jev Verification]\nAkun resmi Twitter / X: **[@jevburns](https://x.com/jevburns)**. Update on-chain otomatis diposting berkala.`;
     }
 
