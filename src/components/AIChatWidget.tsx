@@ -32,15 +32,7 @@ export const AIChatWidget: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content:
-        '[Jev System One Online]\n\n*"Jev answers, it doesn\'t write."*\n\nSaya adalah **Jev**, model keputusan dan reasoning otonom dari **Venice.ai** (`jev-latest`) yang terintegrasi pada protokol **$JEVBURN**.\n\nTanyakan verifikasi Contract Address (CA), rasio pembakaran 15.2%, analisa DEX buyback kurva, atau status live on-chain Robinhood Chain.',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -224,7 +216,18 @@ export const AIChatWidget: React.FC = () => {
           </div>
 
           {/* Messages Stream */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs flex flex-col">
+            {messages.length === 0 && (
+              <div className="my-auto flex flex-col items-center justify-center text-center p-6 text-[#8e8b85]">
+                <div className="w-10 h-10 rounded-xl bg-[#ff5722]/10 border border-[#ff5722]/20 flex items-center justify-center text-[#ff5722] mb-3 shadow-[0_0_20px_rgba(255,87,34,0.15)]">
+                  <Flame className="w-5 h-5" />
+                </div>
+                <div className="text-xs font-bold text-white mb-1 tracking-wide">JEV DECISION ENGINE ACTIVE</div>
+                <p className="text-[11px] leading-relaxed text-[#8e8b85] max-w-[240px]">
+                  Tanyakan apapun tentang $JEVBURN, strategi DCA, atau status pembakaran 15.2%.
+                </p>
+              </div>
+            )}
             {messages.map((msg) => {
               const isUser = msg.role === 'user';
               return (
