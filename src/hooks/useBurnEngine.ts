@@ -473,35 +473,17 @@ export function useFlywheelEngine() {
           const json = await res.json();
           if (json.success && json.data) {
             const data = json.data;
-            const escrow = parseFloat(data.escrowBalanceETH) || 0;
-            const threshold = parseFloat(data.claimThresholdETH) || config.claimThresholdETH;
-            const isBusy = data.status === 'claiming' || data.status === 'buyback' || data.status === 'burning' || data.status === 'active';
+            const isBusy = data.status === 'claiming' || data.status === 'buyback' || data.status === 'burning';
 
             setState((prev) => {
               if (isExecutingRef.current) return prev;
-              const progress = isBusy
-                ? (data.status === 'claiming' ? 33 : data.status === 'buyback' ? 66 : 100)
-                : Math.min(100, Math.round((escrow / threshold) * 100));
-
-              const claimedFromBot = data.totalFeesClaimedETH ? parseFloat(data.totalFeesClaimedETH) : 0;
-
               return {
                 ...prev,
-                currentEscrowBalanceETH: escrow,
-                claimThresholdETH: threshold,
-                totalFeesClaimedETH: claimedFromBot > 0 ? claimedFromBot : prev.totalFeesClaimedETH,
-                totalFeesClaimedUSD: (claimedFromBot > 0 ? claimedFromBot : prev.totalFeesClaimedETH) * 2500,
-                cycleCount: data.totalCyclesExecuted !== undefined ? data.totalCyclesExecuted : prev.cycleCount,
                 isWheelSpinning: isBusy,
-                currentPhase: (data.status === 'claiming' || data.status === 'buyback' || data.status === 'burning')
-                  ? data.status
-                  : 'accumulate',
-                phaseProgress: progress,
+                currentPhase: isBusy ? data.status : prev.currentPhase,
                 lastActionText: isBusy
                   ? `Autonomous Bot Active: ${data.status.toUpperCase()} phase executing on-chain...`
-                  : escrow >= threshold
-                    ? `Claimable fee threshold reached (${escrow.toFixed(4)} / ${threshold} ETH)! Starting bot cycle...`
-                    : `Wheel Idle: Escrow balance ${escrow.toFixed(4)} ETH (Target: ${threshold} ETH). Standby.`
+                  : prev.lastActionText
               };
             });
           }
