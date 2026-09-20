@@ -137,10 +137,10 @@ export function App() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#ff3d00] to-[#ff9100] p-0.5 flex items-center justify-center shadow-[0_0_14px_rgba(255,87,34,0.35)] group-hover:shadow-[0_0_20px_rgba(255,87,34,0.5)] transition-shadow">
               <Flame className="w-4 h-4 text-white fill-white" />
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-bold tracking-tight text-white text-base">HOT</span>
+            <div className="flex items-baseline gap-1">
+              <span className="font-bold tracking-tight text-white text-base">JEV</span>
               <span className="text-[#ff5722] font-semibold text-xs tracking-wider uppercase font-mono">
-                FURNACE
+                BURN
               </span>
             </div>
           </a>
@@ -216,7 +216,7 @@ export function App() {
 
               {/* Headline */}
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-                HOT <span className="bg-gradient-to-r from-[#ff4500] via-[#ff7a00] to-[#ffaa00] bg-clip-text text-transparent">FURNACE</span>
+                JEV<span className="bg-gradient-to-r from-[#ff4500] via-[#ff7a00] to-[#ffaa00] bg-clip-text text-transparent">BURN</span>
               </h1>
 
               <p className="text-base sm:text-lg text-[#c5c2bc] max-w-xl leading-relaxed">
@@ -643,7 +643,7 @@ export function App() {
       {/* Footer */}
       <footer className="px-4 sm:px-8 md:px-12 py-6 border-t border-[#222329] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#a6a39d]">
         <div className="flex items-center gap-2">
-          <span className="text-white font-bold">HOT FURNACE</span>
+          <span className="text-white font-bold tracking-tight">JEVBURN</span>
           <span>//</span>
           <span>ROBINHOOD MAINNET [4663]</span>
         </div>

@@ -119,7 +119,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
               <Flame className="w-4 h-4 text-white fill-white" />
             </div>
             <span className="font-bold text-base tracking-tight">
-              HOT <span className="text-[#ff5722] font-normal">Furnace</span>
+              JEV<span className="text-[#ff5722] font-semibold">BURN</span>
             </span>
           </a>
         </div>
@@ -337,7 +337,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
       {/* Footer */}
       <footer className="h-16 px-4 sm:px-8 border-t border-[#24252a] flex items-center justify-between text-xs text-[#a6a39d] mt-12">
         <button onClick={onNavigateHome} className="hover:text-white transition-colors cursor-pointer">
-          HOT Furnace &bull; Return to Overview
+          JEVBURN &bull; Return to Overview
         </button>
         <div className="flex items-center gap-4">
           <a href={`https://explorer.mainnet.chain.robinhood.com/token/${config.tokenAddress}`} target="_blank" rel="noreferrer" className="hover:text-white">
