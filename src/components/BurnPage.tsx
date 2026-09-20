@@ -99,9 +99,11 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           </button>
 
           <a href="/" onClick={(e) => { e.preventDefault(); onNavigateHome(); }} className="flex items-center gap-2 text-[#f5f3ef] no-underline">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#ff4500] to-[#ff7a00] p-0.5 flex items-center justify-center shadow-[0_0_12px_rgba(255,87,34,0.3)]">
-              <Flame className="w-4 h-4 text-white fill-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="JEVBURN Logo"
+              className="w-7 h-7 rounded-lg object-contain border border-[#ff5722]/30 shadow-[0_0_12px_rgba(255,87,34,0.3)]"
+            />
             <span className="font-bold text-base tracking-tight">
               JEV<span className="text-[#ff5722] font-semibold">BURN</span>
             </span>
@@ -119,7 +121,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           </div>
 
           <a
-            href="https://x.com/hotonrh"
+            href="https://x.com/jevburns"
             target="_blank"
             rel="noreferrer"
             className="p-1.5 text-[#a6a39d] hover:text-white transition-colors"
@@ -135,13 +137,21 @@ export const BurnPage: React.FC<BurnPageProps> = ({
       {/* Main Ledger Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
         
-        {/* Burn Header Hero Banner */}
-        <div className="rounded-2xl bg-gradient-to-r from-[#14151b] via-[#101116] to-[#0d0e12] border border-[#24252a] p-6 sm:p-8 flex flex-col md:flex-row md:items-end justify-between gap-6 relative overflow-hidden shadow-xl">
-          {/* Subtle Ambient Flame Glow */}
-          <div className="absolute right-0 top-0 w-96 h-full bg-[#ff5722]/5 blur-3xl pointer-events-none" />
+        {/* Burn Header Hero with banner.png background */}
+        <div className="rounded-2xl border border-[#24252a] p-6 sm:p-10 flex flex-col md:flex-row md:items-end justify-between gap-6 relative overflow-hidden shadow-2xl bg-[#090a0d]">
+          {/* Full Background Banner */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <img
+              src="/banner.png"
+              alt="JEVBURN Combustion Chamber"
+              className="w-full h-full object-cover object-center opacity-30 filter brightness-[0.85]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/75 to-[#090a0d]/90" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#090a0d] via-transparent to-[#090a0d]/90" />
+          </div>
 
           <div className="space-y-3 relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff5722]/10 border border-[#ff5722]/30 text-[#ff5722] text-xs font-mono font-medium">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff5722]/10 border border-[#ff5722]/30 text-[#ff5722] text-xs font-mono font-medium backdrop-blur-sm">
               <Flame className="w-3.5 h-3.5" />
               <span>ON-CHAIN INCINERATION PROOFS</span>
             </div>
@@ -151,7 +161,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             </h1>
 
             <p className="text-sm text-[#a6a39d] leading-relaxed">
-              Every fee collected from Pons Curve trading volume is automatically swept, swapped for $JEV on DEX,
+              Every fee collected from Pons Curve trading volume is automatically swept, swapped for $JEVBURN on DEX,
               and permanently incinerated to <code className="text-[#ff5722]">0x000...dEaD</code>. Fully autonomous and irrevocable.
             </p>
           </div>
@@ -172,7 +182,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#ff5722] font-mono mt-1">
               {formatNumber(state.totalTokensBurned)}
             </div>
-            <span className="text-xs text-[#a6a39d] mt-1 block">JEV permanently destroyed</span>
+            <span className="text-xs text-[#a6a39d] mt-1 block">JEVBURN permanently destroyed</span>
           </div>
 
           <div className="p-4 sm:p-5 rounded-xl bg-[#111217] border border-[#24252a]">
@@ -231,7 +241,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             <span>Cycle</span>
             <span>Time</span>
             <span>Claimed ETH</span>
-            <span>Burned JEV</span>
+            <span>Burned JEVBURN</span>
             <span className="text-right">Transactions (Explorer)</span>
           </div>
 
@@ -278,7 +288,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
                   {/* Burned */}
                   <div className="flex md:flex-col justify-between md:justify-start text-xs font-mono">
                     <span className="md:hidden text-[#a6a39d]">Burned:</span>
-                    <strong className="text-[#ff5722] font-bold">{formatNumber(entry.burnedJEV)} JEV</strong>
+                    <strong className="text-[#ff5722] font-bold">{formatNumber(entry.burnedJEV)} JEVBURN</strong>
                     <small className="text-[#a6a39d]">Sent to Dead Sink</small>
                   </div>
 
@@ -333,7 +343,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           <a href={`https://explorer.mainnet.chain.robinhood.com/token/${config.tokenAddress}`} target="_blank" rel="noreferrer" className="hover:text-white">
             Robinhood Explorer
           </a>
-          <a href="https://x.com/hotonrh" target="_blank" rel="noreferrer" className="hover:text-white">
+          <a href="https://x.com/jevburns" target="_blank" rel="noreferrer" className="hover:text-white">
             Twitter / X
           </a>
         </div>

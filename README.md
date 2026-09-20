@@ -1,4 +1,4 @@
-# 🔥 HOT — Autonomous Flywheel Engine (Pons Family v2)
+# 🔥 JEVBURN — Autonomous Flywheel Engine (Pons Family v2)
 
 An autonomous token liquidity, buyback, and burn engine deployed on **Robinhood Chain (Chain ID: 4663)** integrated with **Pons Family v2**.
 
@@ -6,7 +6,7 @@ An autonomous token liquidity, buyback, and burn engine deployed on **Robinhood 
 
 ## ⚡ Overview
 
-HOT operates on a perpetual closed-loop mechanism:
+JEVBURN operates on a perpetual closed-loop mechanism:
 1. **Trade & Tax Inflow**: Trading activity on the Pons Curve generates creator fees in native ETH accumulating in the Fee Escrow (`0xd3AFEB...Ac9e`).
 2. **Auto-Claim Fee**: When claimable fees reach the configured threshold (e.g. `0.015 ETH`), the engine executes `escrow.claim()`.
 3. **Auto-Buyback DEX**: Claimed ETH is immediately swapped for tokens on the Pons Bonding Curve via `curve.buy()`.
@@ -41,8 +41,8 @@ cp .env.example .env
 
 Edit `.env`:
 ```env
-VITE_TOKEN_NAME="HOT"
-VITE_TOKEN_SYMBOL="HOT"
+VITE_TOKEN_NAME="JEVBURN"
+VITE_TOKEN_SYMBOL="JEVBURN"
 VITE_TOKEN_ADDRESS="0x..."
 VITE_CURVE_ADDRESS="0x..."
 VITE_CREATOR_ADDRESS="0x..."
@@ -74,5 +74,5 @@ npm run bot
 ---
 
 ## 🐦 Socials & Documentation
-- **Twitter / X**: [@hotonrh](https://x.com/hotonrh)
+- **Twitter / X**: [@jevburns](https://x.com/jevburns)
 - **Pons v2 Documentation**: [docs.ponsfamily.com/v2](https://docs.ponsfamily.com/v2)

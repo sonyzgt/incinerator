@@ -72,7 +72,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
               <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                 {formatNumber(state.totalTokensBoughtBack)}
               </span>
-              <span className="text-[10px] font-oxanium text-emerald-400 font-bold">JEV</span>
+              <span className="text-[10px] font-oxanium text-emerald-400 font-bold">JEVBURN</span>
             </div>
             <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
               100% REINVESTED ON CURVE
@@ -97,7 +97,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
               <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-rose-400 group-hover:text-rose-300 transition-colors">
                 {formatNumber(state.totalTokensBurned)}
               </span>
-              <span className="text-[10px] font-oxanium text-rose-400 font-bold">JEV</span>
+              <span className="text-[10px] font-oxanium text-rose-400 font-bold">JEVBURN</span>
             </div>
 
             {/* Cyber Segment Progress Indicator */}
@@ -135,7 +135,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
               <span className="text-[10px] font-oxanium text-cyan-400 font-bold">USD</span>
             </div>
             <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
-              ${state.tokenPriceUSD.toFixed(6)} / JEV
+              ${state.tokenPriceUSD.toFixed(6)} / JEVBURN
             </div>
           </div>
 

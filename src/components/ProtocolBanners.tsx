@@ -25,7 +25,7 @@ export const TopBroadcastBanner: React.FC<TopBroadcastBannerProps> = ({
   totalFeesClaimedETH,
 }) => {
   const tickerItems = [
-    `🔥 ${totalBurnedFormatted} HOT PERMANENTLY BURNED (${burnedPercent.toFixed(2)}% OF TOTAL SUPPLY)`,
+    `🔥 ${totalBurnedFormatted} JEVBURN PERMANENTLY BURNED (${burnedPercent.toFixed(2)}% OF TOTAL SUPPLY)`,
     `⚡ 100% PROGRAMMATIC REINVESTMENT • ZERO HUMAN INTERVENTION`,
     `💎 ${totalFeesClaimedETH.toFixed(4)} ETH SWEPT DIRECTLY INTO DEX BUYBACKS`,
     `🛡️ PONS v2 CANONICAL ESCROW DAEMON ACTIVE 24/7`,
@@ -186,7 +186,7 @@ export const DeflationaryMilestoneBanner: React.FC<DeflationaryMilestoneBannerPr
 
             <p className="text-xs font-mono text-zinc-400">
               <span className="font-orbitron font-bold text-rose-400 text-sm">
-                {totalBurnedFormatted} HOT
+                {totalBurnedFormatted} JEVBURN
               </span>{' '}
               permanently removed from circulation forever.
             </p>
@@ -195,7 +195,7 @@ export const DeflationaryMilestoneBanner: React.FC<DeflationaryMilestoneBannerPr
             <div className="pt-2 max-w-md">
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
                 <span>CIRCULATION BURNED:</span>
-                <span className="text-rose-400 font-bold">{burnedPercent.toFixed(2)}% / 1,000,000,000 HOT</span>
+                <span className="text-rose-400 font-bold">{burnedPercent.toFixed(2)}% / 1,000,000,000 JEVBURN</span>
               </div>
               <div className="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden">
                 <div
@@ -268,7 +268,7 @@ export const CommunityEcosystemBanner: React.FC<CommunityEcosystemBannerProps> =
 
         <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
           <a
-            href="https://x.com/hotonrh"
+            href="https://x.com/jevburns"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] hover:border-cyan-400/50 text-white font-bold transition-all group"
@@ -276,7 +276,7 @@ export const CommunityEcosystemBanner: React.FC<CommunityEcosystemBannerProps> =
             <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
-            <span className="font-oxanium">@hotonrh</span>
+            <span className="font-oxanium">@jevburns</span>
             <ArrowUpRight className="w-3 h-3 text-zinc-400 group-hover:text-white" />
           </a>
 

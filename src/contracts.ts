@@ -4,7 +4,7 @@ export const PONS_V2_CONFIG = {
   currency: 'ETH',
   contracts: {
     token: import.meta.env.VITE_TOKEN_ADDRESS || '',
-    curve: import.meta.env.VITE_CURVE_ADDRESS || '',
+    curve: import.meta.env.VITE_CURVE_ADDRESS || '0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60',
     creator: import.meta.env.VITE_CREATOR_ADDRESS || '',
     factory: '0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e',
     feeEscrow: '0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e',

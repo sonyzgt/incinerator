@@ -36,7 +36,7 @@ async function runTestCycle() {
     "function transfer(address, uint256) returns (bool)"
   ], wallet);
 
-  const tokenSymbol = await token.symbol().catch(() => "HOT");
+  const tokenSymbol = await token.symbol().catch(() => "JEVBURN");
 
   // CEK FEE DI ESCROW
   const claimableWei = await escrow.balanceOf(wallet.address);
@@ -92,7 +92,7 @@ async function runTestCycle() {
   console.log(`   Claim Tx   : https://explorer.mainnet.chain.robinhood.com/tx/${claimTx.hash}`);
   console.log(`   Buyback Tx : https://explorer.mainnet.chain.robinhood.com/tx/${buyTx.hash}`);
   console.log(`   Burn Tx    : https://explorer.mainnet.chain.robinhood.com/tx/${burnTx.hash}`);
-  console.log(`   Total $HOT di Dead Sink: ${ethers.formatUnits(deadBal, 18)}`);
+  console.log(`   Total $JEVBURN di Dead Sink: ${ethers.formatUnits(deadBal, 18)}`);
   console.log(`==========================================================`);
 }
 

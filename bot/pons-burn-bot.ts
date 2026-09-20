@@ -50,7 +50,7 @@ let currentConfig = {
   rpcUrl: process.env.RPC_URL || process.env.VITE_RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
   privateKey: process.env.CREATOR_PRIVATE_KEY || process.env.PRIVATE_KEY || "",
   tokenAddress: process.env.TOKEN_ADDRESS || process.env.VITE_TOKEN_ADDRESS || "",
-  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || "",
+  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || "0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60",
   claimThresholdETH: process.env.CLAIM_THRESHOLD_ETH || process.env.VITE_CLAIM_THRESHOLD_ETH || "0.015",
   pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || "10", 10),
   port: parseInt(process.env.PORT || "5000", 10)
@@ -241,7 +241,7 @@ async function executeCycle() {
       await claimTx.wait();
       addLog("success", "Fee successfully claimed to operator wallet!");
       const claimedVal = parseFloat(claimableETH) || 0;
-      botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.9680") + claimedVal).toFixed(4);
+      botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.0") + claimedVal).toFixed(4);
       botState.escrowBalanceETH = "0.0";
 
       // 2. BUYBACK ON CURVE
@@ -273,7 +273,7 @@ async function executeCycle() {
 
       // 3. BURN TOKEN
       botState.status = "burning" as any;
-      const tokenSymbol = await token.symbol().catch(() => "HOT");
+      const tokenSymbol = await token.symbol().catch(() => "JEVBURN");
       const tokenBalance: bigint = await token.balanceOf(wallet.address);
       const formattedBalance = ethers.formatUnits(tokenBalance, 18);
 
@@ -430,7 +430,7 @@ const server = http.createServer(async (req, res) => {
 const PORT = currentConfig.port;
 server.listen(PORT, "0.0.0.0", () => {
   console.log("==========================================================");
-  console.log(`🚀 HOT AUTONOMOUS FLYWHEEL & API SERVER ACTIVE`);
+  console.log(`🚀 JEVBURN AUTONOMOUS FLYWHEEL & API SERVER ACTIVE`);
   console.log(`   Server Port      : ${PORT}`);
   console.log(`   Admin API Ready  : http://localhost:${PORT}/api/status`);
   console.log(`   Operator Wallet  : ${botState.walletAddress || "Not ready"}`);

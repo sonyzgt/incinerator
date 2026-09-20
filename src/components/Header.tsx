@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Volume2, VolumeX, Shield, Terminal, ArrowUpRight } from 'lucide-react';
+import { Copy, Check, Volume2, VolumeX, Terminal, ArrowUpRight } from 'lucide-react';
 import { MachineConfig } from '../types';
 
 interface HeaderProps {
@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
             </div>
             <span className="font-orbitron font-bold text-base tracking-wider text-white group-hover:text-cyan-300 transition-colors">
-              HOT
+              JEVBURN
             </span>
             <span className="text-zinc-600 font-mono text-xs select-none">//</span>
             <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase hidden sm:inline">
@@ -119,15 +119,6 @@ export const Header: React.FC<HeaderProps> = ({
               {soundEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4 text-zinc-600" />}
             </button>
           )}
-
-          {/* Admin Link (/memex) */}
-          <a
-            href="/memex"
-            className="text-zinc-400 hover:text-white transition-colors p-1"
-            title="System Admin & Settings"
-          >
-            <Shield className="w-3.5 h-3.5" />
-          </a>
         </div>
       </div>
     </header>

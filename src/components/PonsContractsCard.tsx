@@ -17,7 +17,7 @@ export const PonsContractsCard: React.FC = () => {
       address: PONS_V2_CONFIG.contracts.token,
       key: 'token',
       highlight: true,
-      desc: 'Canonical $HOT ERC-20 contract deployed on Robinhood Chain.'
+      desc: 'Canonical $JEVBURN ERC-20 contract deployed on Robinhood Chain.'
     },
     {
       role: 'BONDING CURVE DEX',
