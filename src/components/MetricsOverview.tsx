@@ -11,7 +11,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num);
   };
 
-  const burnedPercent = state.burnedPercentageOfSupply > 0 ? state.burnedPercentageOfSupply : 11.53;
+  const burnedPercent = state.burnedPercentageOfSupply;
 
   return (
     <div className="w-full bg-[#080B10] border border-cyan-500/20 rounded-xl overflow-hidden shadow-lg">
@@ -72,7 +72,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
               <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                 {formatNumber(state.totalTokensBoughtBack)}
               </span>
-              <span className="text-[10px] font-oxanium text-emerald-400 font-bold">HOT</span>
+              <span className="text-[10px] font-oxanium text-emerald-400 font-bold">JEV</span>
             </div>
             <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
               100% REINVESTED ON CURVE
@@ -97,7 +97,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
               <span className="font-orbitron text-xl sm:text-2xl font-bold tracking-tight text-rose-400 group-hover:text-rose-300 transition-colors">
                 {formatNumber(state.totalTokensBurned)}
               </span>
-              <span className="text-[10px] font-oxanium text-rose-400 font-bold">HOT</span>
+              <span className="text-[10px] font-oxanium text-rose-400 font-bold">JEV</span>
             </div>
 
             {/* Cyber Segment Progress Indicator */}
@@ -135,7 +135,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
               <span className="text-[10px] font-oxanium text-cyan-400 font-bold">USD</span>
             </div>
             <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
-              ${state.tokenPriceUSD.toFixed(6)} / HOT
+              ${state.tokenPriceUSD.toFixed(6)} / JEV
             </div>
           </div>
 

@@ -74,96 +74,27 @@ const getInitialState = (cfg: MachineConfig): FlywheelState => {
     isWheelSpinning: false,
     currentPhase: 'accumulate',
     phaseProgress: 0,
-    cycleCount: 7,
-    totalFeesClaimedETH: 0.9680,
-    totalFeesClaimedUSD: 2420.0,
-    totalTokensBoughtBack: 115313644,
-    totalTokensBurned: 115313644,
-    burnedPercentageOfSupply: 11.53,
-    currentEscrowBalanceETH: 0.0028,
+    cycleCount: 0,
+    totalFeesClaimedETH: 0,
+    totalFeesClaimedUSD: 0,
+    totalTokensBoughtBack: 0,
+    totalTokensBurned: 0,
+    burnedPercentageOfSupply: 0,
+    currentEscrowBalanceETH: 0,
     claimThresholdETH: cfg.claimThresholdETH,
-    tokenPriceETH: 0.0000000071,
-    tokenPriceUSD: 0.00001775,
-    marketCapUSD: 17750,
+    tokenPriceETH: 0,
+    tokenPriceUSD: 0,
+    marketCapUSD: 0,
     totalSupply: 1_000_000_000,
-    deadAddressBalance: 115313644,
-    lastActionText: 'Engine Active: Volume accumulating in Escrow. Automated flywheel monitoring on-chain.',
+    deadAddressBalance: 0,
+    lastActionText: 'Engine Ready: Waiting for token deployment and first volume cycle.',
     connectedWallet: null,
     isOnChainMode: true,
   };
 };
 
 const getInitialLogs = (cfg: MachineConfig): ActivityLog[] => {
-  return [
-    {
-      id: 'burn-real-4',
-      timestamp: '16:35:10',
-      phase: 'burn',
-      action: 'BURN TO SINK',
-      details: 'Incinerated 4,328,961 $HOT to 0x000000000000000000000000000000000000dEaD',
-      txHash: '0x9db2c1a84ef30198cae377f0a92d836173bca10034a78129e9d6d8412ff18751',
-      amountToken: 4328961,
-      status: 'success',
-      contractTarget: '0x000...dEaD'
-    },
-    {
-      id: 'buyback-real-4',
-      timestamp: '16:35:00',
-      phase: 'buyback',
-      action: 'AUTO-BUYBACK',
-      details: 'Swapped 0.0379 ETH on Pons Curve -> bought 4,328,961 $HOT',
-      txHash: '0x327bf00ea0f62291582e56e0931298511739c32df4a5f3333333333333333333',
-      amountETH: 0.0379,
-      amountToken: 4328961,
-      status: 'success',
-      contractTarget: 'Curve.buy()'
-    },
-    {
-      id: 'claim-real-4',
-      timestamp: '16:34:50',
-      phase: 'claim',
-      action: 'CLAIM FEE',
-      details: 'Claimed 0.0379 ETH from Pons Fee Escrow (0xd3AFEB...Ac9e)',
-      txHash: '0x76b2ce100a9fa93e2714c6225ff32900ea7401d81f5c6a583e74c82b542e7188',
-      amountETH: 0.0379,
-      status: 'success',
-      contractTarget: 'FeeEscrow.claim()'
-    },
-    {
-      id: 'burn-real-3',
-      timestamp: '16:18:05',
-      phase: 'burn',
-      action: 'BURN TO SINK',
-      details: 'Incinerated 3,978,663 $HOT to 0x000000000000000000000000000000000000dEaD',
-      txHash: '0xaf46c0454ee31af4967b7613f4321f0b2bb6834f42c8cb2f39f4c6d5c0a110b7',
-      amountToken: 3978663,
-      status: 'success',
-      contractTarget: '0x000...dEaD'
-    },
-    {
-      id: 'buyback-real-3',
-      timestamp: '16:17:55',
-      phase: 'buyback',
-      action: 'AUTO-BUYBACK',
-      details: 'Swapped 0.0390 ETH on Pons Curve -> bought 3,978,663 $HOT',
-      txHash: '0xb9b02ac99a25452d43f9995434de79ec5de3ef4e1e4dce92f75b0fa44dfa26d7',
-      amountETH: 0.0390,
-      amountToken: 3978663,
-      status: 'success',
-      contractTarget: 'Curve.buy()'
-    },
-    {
-      id: 'claim-real-3',
-      timestamp: '16:17:45',
-      phase: 'claim',
-      action: 'CLAIM FEE',
-      details: 'Claimed 0.0390 ETH from Pons Fee Escrow (0xd3AFEB...Ac9e)',
-      txHash: '0x97d7c73c034a51bef7cec7d65e4a474775345e8e6d1fd7ae0df2aa2c4077fb33',
-      amountETH: 0.0390,
-      status: 'success',
-      contractTarget: 'FeeEscrow.claim()'
-    }
-  ];
+  return [];
 };
 
 const RANDOM_TX_HASH = () =>

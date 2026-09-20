@@ -151,7 +151,7 @@ export async function fetchFullOnChainMetrics(
 
     let resolvedCurve = curveAddress;
     let totalSupply = 1_000_000_000;
-    let tokensBurned = 115_313_644; // live verified fallback
+    let tokensBurned = 0;
 
     try {
       const [ts, deadBal, crv] = await Promise.all([
@@ -169,7 +169,7 @@ export async function fetchFullOnChainMetrics(
     // 3. Curve reserves & price
     let curveReservesQuoteETH = 0;
     let curveReservesTokens = 0;
-    let tokenPriceETH = 0.000000007;
+    let tokenPriceETH = 0;
 
     if (resolvedCurve && ethers.isAddress(resolvedCurve) && resolvedCurve !== ethers.ZeroAddress) {
       try {
@@ -184,8 +184,8 @@ export async function fetchFullOnChainMetrics(
     }
 
     // 4. Query total creator fees swept/earned from FeeEscrow on-chain
-    let totalFeesEarnedETH = 0.9680;
-    let totalFeesClaimedETH = 0.9652;
+    let totalFeesEarnedETH = 0;
+    let totalFeesClaimedETH = 0;
     if (creatorAddress && ethers.isAddress(creatorAddress) && resolvedCurve && ethers.isAddress(resolvedCurve)) {
       try {
         const latest = await provider.getBlockNumber();

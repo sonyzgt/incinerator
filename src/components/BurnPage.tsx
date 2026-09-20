@@ -33,7 +33,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
 
   const explorerUrl = 'https://explorer.mainnet.chain.robinhood.com';
   const deadAddress = config.deadAddress || PONS_V2_CONFIG.contracts.deadAddress;
-  const burnedPercent = state.burnedPercentageOfSupply > 0 ? state.burnedPercentageOfSupply : 11.53;
+  const burnedPercent = state.burnedPercentageOfSupply;
 
   const copyDead = () => {
     navigator.clipboard.writeText(deadAddress);
@@ -45,49 +45,33 @@ export const BurnPage: React.FC<BurnPageProps> = ({
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num);
   };
 
-  // Build burn ledger entries combining real logs with on-chain cycles
-  const totalCompleted = Math.max(state.cycleCount, 38);
+  // Build burn ledger entries strictly from real logs
+  const burnLogs = logs.filter(
+    (l) => l.phase === 'burn' || l.action?.toLowerCase().includes('burn')
+  );
 
-  // Generate verified ledger entries for the page
-  const ledgerEntries = Array.from({ length: Math.min(totalCompleted, 20) }, (_, i) => {
-    const cycleNum = totalCompleted - i;
-    const logMatch = logs[i];
-    const date = new Date(Date.now() - i * 3600 * 1000 * 3.5);
-    const timeStr = date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const totalCompleted = state.cycleCount > 0 ? state.cycleCount : burnLogs.length;
 
-    const ethAmount = 0.015;
+  const ledgerEntries = burnLogs.map((log, index) => {
+    const cycleNum = burnLogs.length - index;
+    const ethAmount = log.amountETH || 0;
     const ethPriceUSD = state.tokenPriceUSD > 0 ? state.tokenPriceUSD * 2.8e7 : 2400;
     const usdAmount = ethAmount * ethPriceUSD;
-    // Estimated tokens burned in this cycle
-    const tokensBurned = Math.round(3034570 + ((cycleNum * 997) % 450000));
-
-    // Tx hashes
-    const mockHashClaim = `0x${(cycleNum * 123456789).toString(16).padEnd(64, 'a')}`;
-    const mockHashBuy = `0x${(cycleNum * 987654321).toString(16).padEnd(64, 'b')}`;
-    const mockHashBurn = `0x${(cycleNum * 555555555).toString(16).padEnd(64, 'c')}`;
-
-    const claimTx = logMatch?.txHash && logMatch.phase === 'claim' ? logMatch.txHash : mockHashClaim;
-    const buyTx = logMatch?.txHash && logMatch.phase === 'buyback' ? logMatch.txHash : mockHashBuy;
-    const burnTx = logMatch?.txHash && logMatch.phase === 'burn' ? logMatch.txHash : mockHashBurn;
+    const tokensBurned = log.amountToken || 0;
 
     return {
-      id: `FIRE-${cycleNum}`,
+      id: log.id || `FIRE-${cycleNum}`,
       cycleNum,
-      timeStr,
-      timestamp: date.toISOString(),
+      timeStr: log.timestamp,
+      timestamp: log.timestamp,
       claimedETH: ethAmount,
       claimedUSD: usdAmount,
       boughtETH: ethAmount,
       boughtUSD: usdAmount,
-      burnedHOT: tokensBurned,
-      claimTx,
-      buyTx,
-      burnTx,
+      burnedJEV: tokensBurned,
+      claimTx: log.txHash || '',
+      buyTx: log.txHash || '',
+      burnTx: log.txHash || '',
     };
   });
 
@@ -96,8 +80,8 @@ export const BurnPage: React.FC<BurnPageProps> = ({
     const term = searchTerm.toLowerCase();
     return (
       entry.id.toLowerCase().includes(term) ||
-      entry.claimTx.toLowerCase().includes(term) ||
-      entry.burnedHOT.toString().includes(term)
+      entry.burnTx.toLowerCase().includes(term) ||
+      entry.burnedJEV.toString().includes(term)
     );
   });
 
@@ -167,7 +151,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             </h1>
 
             <p className="text-sm text-[#a6a39d] leading-relaxed">
-              Every fee collected from Pons Curve trading volume is automatically swept, swapped for $HOT on DEX,
+              Every fee collected from Pons Curve trading volume is automatically swept, swapped for $JEV on DEX,
               and permanently incinerated to <code className="text-[#ff5722]">0x000...dEaD</code>. Fully autonomous and irrevocable.
             </p>
           </div>
@@ -188,7 +172,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#ff5722] font-mono mt-1">
               {formatNumber(state.totalTokensBurned)}
             </div>
-            <span className="text-xs text-[#a6a39d] mt-1 block">HOT permanently destroyed</span>
+            <span className="text-xs text-[#a6a39d] mt-1 block">JEV permanently destroyed</span>
           </div>
 
           <div className="p-4 sm:p-5 rounded-xl bg-[#111217] border border-[#24252a]">
@@ -247,15 +231,21 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             <span>Cycle</span>
             <span>Time</span>
             <span>Claimed ETH</span>
-            <span>Burned HOT</span>
+            <span>Burned JEV</span>
             <span className="text-right">Transactions (Explorer)</span>
           </div>
 
           {/* Rows */}
           <div className="divide-y divide-[#24252a]">
             {filteredEntries.length === 0 ? (
-              <div className="py-12 text-center text-xs font-mono text-[#a6a39d]">
-                No matching burn records found.
+              <div className="py-16 px-4 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#16171e] flex items-center justify-center mx-auto text-[#ff5722]">
+                  <Flame className="w-6 h-6" />
+                </div>
+                <div className="text-white font-bold text-sm sm:text-base font-mono">Genesis State &bull; Ready For Launch</div>
+                <p className="text-xs text-[#a6a39d] max-w-md mx-auto font-mono leading-relaxed">
+                  No burns recorded yet. Once trade volume occurs on Robinhood Chain and FeeEscrow reaches threshold, autonomous buyback and dead-sink incinerations will appear here in real-time.
+                </p>
               </div>
             ) : (
               filteredEntries.map((entry) => (
@@ -288,7 +278,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
                   {/* Burned */}
                   <div className="flex md:flex-col justify-between md:justify-start text-xs font-mono">
                     <span className="md:hidden text-[#a6a39d]">Burned:</span>
-                    <strong className="text-[#ff5722] font-bold">{formatNumber(entry.burnedHOT)} HOT</strong>
+                    <strong className="text-[#ff5722] font-bold">{formatNumber(entry.burnedJEV)} JEV</strong>
                     <small className="text-[#a6a39d]">Sent to Dead Sink</small>
                   </div>
 

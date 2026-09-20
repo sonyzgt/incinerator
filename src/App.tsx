@@ -99,7 +99,7 @@ export function App() {
     return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(num);
   };
 
-  const burnedPercent = state.burnedPercentageOfSupply > 0 ? state.burnedPercentageOfSupply : 11.53;
+  const burnedPercent = state.burnedPercentageOfSupply;
   const targetThreshold = state.claimThresholdETH > 0 ? state.claimThresholdETH : 0.015;
   const deadAddress = config.deadAddress || PONS_V2_CONFIG.contracts.deadAddress;
   const explorerUrl = 'https://explorer.mainnet.chain.robinhood.com';
@@ -107,24 +107,32 @@ export function App() {
   const escrowProgressPercent = Math.min(100, Math.max(0, (state.currentEscrowBalanceETH / targetThreshold) * 100));
 
   // Chart data calculation
-  const burnPoints = [
-    { x: 0, y: 42 },
-    { x: 14, y: 38 },
-    { x: 28, y: 33 },
-    { x: 42, y: 27 },
-    { x: 56, y: 20 },
-    { x: 70, y: 14 },
-    { x: 85, y: 8 },
-    { x: 100, y: 4 },
-  ];
+  const burnPoints = state.totalTokensBurned > 0
+    ? [
+        { x: 0, y: 42 },
+        { x: 14, y: 38 },
+        { x: 28, y: 33 },
+        { x: 42, y: 27 },
+        { x: 56, y: 20 },
+        { x: 70, y: 14 },
+        { x: 85, y: 8 },
+        { x: 100, y: 4 },
+      ]
+    : [
+        { x: 0, y: 42 },
+        { x: 25, y: 42 },
+        { x: 50, y: 42 },
+        { x: 75, y: 42 },
+        { x: 100, y: 42 },
+      ];
   const chartLine = burnPoints.map(p => `${p.x},${p.y}`).join(' ');
   const chartArea = `M ${chartLine.replaceAll(' ', ' L ')} L 100 42 L 0 42 Z`;
 
   // Bars for ETH deployments
   const spendBars = [0.015, 0.0148, 0.0152, 0.015, 0.0151, 0.0149, 0.015, 0.0155, 0.0147, 0.015, 0.0152, 0.015];
 
-  const cycleNum = Math.max(state.cycleCount, 38);
-  const cycleClaimETH = 0.015;
+  const cycleNum = state.cycleCount;
+  const cycleClaimETH = state.totalFeesClaimedETH > 0 ? (state.totalFeesClaimedETH / Math.max(1, state.cycleCount)) : targetThreshold;
   const cycleClaimUSD = cycleClaimETH * (state.tokenPriceUSD > 0 ? state.tokenPriceUSD * 2.8e7 : 2400);
 
   return (
@@ -301,7 +309,7 @@ export function App() {
                 <div className="pt-2 border-t border-[#24252a] flex items-center justify-between text-xs font-mono">
                   <span className="text-[#a6a39d]">SUPPLY INCINERATED:</span>
                   <span className="text-[#ff5722] font-bold">
-                    {formatCompact(state.totalTokensBurned)} HOT ({burnedPercent.toFixed(2)}%)
+                    {formatCompact(state.totalTokensBurned)} JEV ({burnedPercent.toFixed(2)}%)
                   </span>
                 </div>
               </div>
@@ -433,7 +441,7 @@ export function App() {
                   PONS MARKET BUYBACK
                 </span>
                 <div className="text-2xl font-bold font-mono text-white mt-1">
-                  {cycleClaimETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">ETH &rarr; HOT</span>
+                  {cycleClaimETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">ETH &rarr; JEV</span>
                 </div>
                 <div className="text-xs text-[#a6a39d] mt-0.5">
                   100% routed through Bonding Curve
@@ -470,7 +478,7 @@ export function App() {
                   INCINERATED FOREVER
                 </span>
                 <div className="text-2xl font-bold font-mono text-[#ff5722] mt-1">
-                  {formatNumber(4320)} <span className="text-xs font-normal text-[#ff7a00]">HOT</span>
+                  {formatNumber(state.totalTokensBurned)} <span className="text-xs font-normal text-[#ff7a00]">JEV</span>
                 </div>
                 <div className="text-xs text-[#a6a39d] mt-0.5">
                   Permanently removed from supply
@@ -536,7 +544,7 @@ export function App() {
               <div className="p-3.5 rounded-xl bg-[#0d0e12] border border-[#1f2027]">
                 <span className="text-[10px] font-mono text-[#a6a39d] uppercase">TOTAL DESTROYED</span>
                 <div className="text-xl font-bold text-white font-mono mt-0.5">
-                  {formatCompact(state.totalTokensBurned)} HOT
+                  {formatCompact(state.totalTokensBurned)} JEV
                 </div>
                 <span className="text-[11px] text-[#ff5722] font-mono font-semibold">
                   {burnedPercent.toFixed(2)}% of supply
@@ -546,17 +554,17 @@ export function App() {
               <div className="p-3.5 rounded-xl bg-[#0d0e12] border border-[#1f2027]">
                 <span className="text-[10px] font-mono text-[#a6a39d] uppercase">LAST 24H BURNS</span>
                 <div className="text-xl font-bold text-white font-mono mt-0.5">
-                  4.85M HOT
+                  {formatCompact(state.totalTokensBurned)} JEV
                 </div>
                 <span className="text-[11px] text-emerald-400 font-mono font-semibold">
-                  +12.4% velocity
+                  {state.cycleCount > 0 ? '+12.4% velocity' : '0.0% (Genesis)'}
                 </span>
               </div>
 
               <div className="p-3.5 rounded-xl bg-[#0d0e12] border border-[#1f2027]">
                 <span className="text-[10px] font-mono text-[#a6a39d] uppercase">AVG CYCLE INTERVAL</span>
                 <div className="text-xl font-bold text-white font-mono mt-0.5">
-                  ~5.2 mins
+                  ~5.0 mins
                 </div>
                 <span className="text-[11px] text-[#a6a39d] font-mono">
                   Continuous liquidation
@@ -568,7 +576,9 @@ export function App() {
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs font-mono text-[#a6a39d]">
                 <span>CUMULATIVE BURN CURVE</span>
-                <span className="text-[#ff5722] font-bold">115.31M HOT REACHED</span>
+                <span className="text-[#ff5722] font-bold">
+                  {state.totalTokensBurned > 0 ? `${formatCompact(state.totalTokensBurned)} JEV REACHED` : '0 JEV REACHED (GENESIS)'}
+                </span>
               </div>
 
               <div className="h-48 sm:h-56 relative bg-[#090a0d] rounded-xl border border-[#1f2027] p-3 overflow-hidden">
@@ -589,10 +599,16 @@ export function App() {
                   <polyline points={chartLine} fill="none" stroke="#ff5722" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                   
                   {/* Milestone checkpoints */}
-                  <circle cx="28" cy="33" r="1.5" fill="#ff5722" />
-                  <circle cx="56" cy="20" r="1.5" fill="#ff5722" />
-                  <circle cx="85" cy="8" r="1.5" fill="#ff5722" />
-                  <circle cx="100" cy="4" r="2.5" fill="#111217" stroke="#ff5722" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                  {state.totalTokensBurned > 0 ? (
+                    <>
+                      <circle cx="28" cy="33" r="1.5" fill="#ff5722" />
+                      <circle cx="56" cy="20" r="1.5" fill="#ff5722" />
+                      <circle cx="85" cy="8" r="1.5" fill="#ff5722" />
+                      <circle cx="100" cy="4" r="2.5" fill="#111217" stroke="#ff5722" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                    </>
+                  ) : (
+                    <circle cx="0" cy="42" r="2.5" fill="#111217" stroke="#ff5722" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                  )}
                 </svg>
               </div>
 
