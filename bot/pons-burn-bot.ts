@@ -515,17 +515,25 @@ Jev Style: Direct, confident, mathematically precise, cybernetic. Give probabili
 
       // 3. Smart Jev Fallback (High-Confidence System One Intelligence)
       if (!aiReply) {
-        const lower = userMessage.toLowerCase();
-        if (lower.includes("ca") || lower.includes("contract") || lower.includes("address") || lower.includes("alamat")) {
-          aiReply = `[Jev Decision: Verified 100%]\n\nOfficial Contract Address (CA) for **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\n• Network: **Robinhood Chain (Chain ID: 4663)**\n• Curve DEX: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Irreversible Sink: \`0x000000000000000000000000000000000000dEaD\``;
-        } else if (lower.includes("burn") || lower.includes("bakar") || lower.includes("supply") || lower.includes("persen") || lower.includes("berapa") || lower.includes("milestone")) {
+        const hasWord = (words: string[]) => {
+          const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+          return new RegExp(`(^|[^a-zA-Z0-9_])(${escaped})([^a-zA-Z0-9_]|$)`, 'i').test(userMessage);
+        };
+
+        if (hasWord(['dca', 'dollar cost', 'dollar-cost', 'averaging'])) {
+          aiReply = `[Jev Decision: Verified 100%]\n\n📊 **Apa itu DCA (Dollar-Cost Averaging)?**\n**DCA** adalah strategi akumulasi aset dengan membeli dalam nominal tetap secara berkala tanpa berspekulasi pada *market timing*. Ini meminimalkan risiko fluktuasi harga jangka pendek.\n\n⚡ **Bagaimana $JEVBURN Menerapkan DCA Otomatis?**\nProtokol $JEVBURN menjalankan **Algorithmic Continuous DCA Buyback**:\n1. Setiap trading di Curve DEX menghasilkan swap fee di FeeEscrow.\n2. Flywheel bot otomatis melakukan eksekusi 'DCA Buyback' menggunakan akumulasi ETH fee untuk membeli token $JEVBURN dari market.\n3. 100% token hasil DCA buyback langsung dikirim ke \`0x000...dEaD\` untuk dimusnahkan selamanya!`;
+        } else if (hasWord(['ca', 'contract', 'address', 'alamat', 'token'])) {
+          aiReply = `[Jev Decision: Verified 100%]\n\nOfficial Contract Address (CA) for **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\n• Network: **Robinhood Chain (Chain ID: 4663)**\n• Curve DEX: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Irreversible Sink: \`0x000000000000000000000000000000000000dEaD\`\n• Live Ledger: [jevburn.com/burn](https://jevburn.com/burn)`;
+        } else if (hasWord(['burn', 'bakar', 'supply', 'persen', 'berapa', 'milestone', 'burned', 'hangus', 'deflasi'])) {
           aiReply = `[Jev Telemetry Assessment]\n\n🔥 **Status Pembakaran Aktif:**\n• Total Burned: **151.999.585+ $JEVBURN**\n• Ratio: **15.20% dari total 1.000.000.000 supply** telah hangus permanen!\n• Status Sink: 100% terkunci di \`0x000...dEaD\`.\n• Ledger Real-time: [jevburn.com/burn](https://jevburn.com/burn)`;
-        } else if (lower.includes("cara") || lower.includes("kerja") || lower.includes("mekanisme") || lower.includes("what is") || lower.includes("how") || lower.includes("flywheel")) {
+        } else if (hasWord(['cara', 'kerja', 'mekanisme', 'flywheel', 'how', 'what is', 'sistem', 'algoritma'])) {
           aiReply = `[Jev System One Architecture]\n\n⚡ **Algoritma Flywheel JEVBURN:**\n1. **Fee Capture**: Setiap trade di Curve menghasilkan fee otomatis di FeeEscrow.\n2. **Threshold Sweep**: Bot mendeteksi saldo >= 0.015 ETH dan memanggil \`claim()\`.\n3. **DEX Buyback**: ETH hasil claim otomatis dieksekusi membeli $JEVBURN di Curve DEX.\n4. **Dead Incineration**: 100% token dikirim ke \`0x000...dEaD\`.\n\nConfidence: 100% On-Chain Verifiable.`;
-        } else if (lower.includes("twitter") || lower.includes("x") || lower.includes("sosmed")) {
+        } else if (hasWord(['liquidity', 'lp', 'pool', 'curve', 'dex'])) {
+          aiReply = `[Jev Liquidity Analysis]\n\n💧 **Curve DEX Pool $JEVBURN:**\n• Pool Contract: \`0x77cc005727f671058d9EC29F7D5e470bd99727F6\`\n• Pairing: **JEVBURN / WETH**\n• Semua swap menghasilkan protokol fee yang 100% dialokasikan untuk sweep & burn.`;
+        } else if (hasWord(['twitter', 'x', 'sosmed', 'komunitas', 'telegram'])) {
           aiReply = `[Jev Verification]\nAkun resmi Twitter / X: **[@jevburns](https://x.com/jevburns)**. Update on-chain otomatis diposting berkala.`;
         } else {
-          aiReply = `[Jev System One Online]\n\nSaya adalah **Jev**, model reasoning dan keputusan otonom dari Venice.ai yang terintegrasi pada protokol **$JEVBURN**.\n\n*Jev answers, it doesn't write.* Tanyakan data kontrak, rasio pembakaran 15.2%, mekanisme DEX buyback, atau analisa protokol Robinhood Chain.`;
+          aiReply = `[Jev System One Online]\n\nSaya adalah **Jev**, model reasoning dan keputusan otonom dari Venice.ai yang terintegrasi pada protokol **$JEVBURN**.\n\n*Jev answers, it doesn't write.* Tanyakan: data kontrak (CA), strategi DCA protokol, status pembakaran 15.2%, mekanisme DEX buyback, atau analisa on-chain Robinhood Chain.`;
         }
       }
 
