@@ -195,29 +195,6 @@ export function App() {
           </a>
         </div>
 
-        {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-8 text-xs text-[#a6a39d]">
-          <button
-            onClick={navigateToBurn}
-            className="inline-flex items-center gap-1.5 hover:text-[#f5f3ef] transition-colors cursor-pointer text-[#ff5722] font-medium"
-          >
-            <Flame className="w-3.5 h-3.5" />
-            <span>Burns (/burn)</span>
-          </button>
-          <a href="#stats" className="hover:text-[#f5f3ef] transition-colors">
-            Metrics
-          </a>
-          <a href="#analytics" className="hover:text-[#f5f3ef] transition-colors">
-            Analytics
-          </a>
-          <a href="#contracts" className="hover:text-[#f5f3ef] transition-colors">
-            Contracts
-          </a>
-          <button onClick={navigateToDocs} className="hover:text-[#f5f3ef] transition-colors cursor-pointer">
-            Docs
-          </button>
-        </nav>
-
         {/* Right Actions */}
         <div className="flex items-center gap-3">
           {/* Audio toggle */}
