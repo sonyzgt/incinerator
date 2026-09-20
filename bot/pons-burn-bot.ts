@@ -45,12 +45,15 @@ const CONFIG_FILE = path.resolve(process.cwd(), "bot-config.json");
 // Admin password untuk otorisasi API dari /memex
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "Sonyfree24@";
 
+const OFFICIAL_JEVBURN_TOKEN = "0xa6a44f24780b95d467d482de278a017fd6d7c2b3";
+const OFFICIAL_JEVBURN_CURVE = "0x77cc005727f671058d9EC29F7D5e470bd99727F6";
+
 // Default Config
 let currentConfig = {
   rpcUrl: process.env.RPC_URL || process.env.VITE_RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
   privateKey: process.env.CREATOR_PRIVATE_KEY || process.env.PRIVATE_KEY || "",
-  tokenAddress: process.env.TOKEN_ADDRESS || process.env.VITE_TOKEN_ADDRESS || "",
-  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || "0x77cc005727f671058d9EC29F7D5e470bd99727F6",
+  tokenAddress: process.env.TOKEN_ADDRESS || process.env.VITE_TOKEN_ADDRESS || OFFICIAL_JEVBURN_TOKEN,
+  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || OFFICIAL_JEVBURN_CURVE,
   claimThresholdETH: process.env.CLAIM_THRESHOLD_ETH || process.env.VITE_CLAIM_THRESHOLD_ETH || "0.015",
   pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || "10", 10),
   port: parseInt(process.env.PORT || "5005", 10)
@@ -65,6 +68,26 @@ if (fs.existsSync(CONFIG_FILE)) {
   } catch (e) {
     console.error("⚠️ Gagal membaca bot-config.json, menggunakan environment default");
   }
+}
+
+// Strict safeguard: reject 0xFEBe and enforce official contracts
+if (
+  !currentConfig.tokenAddress ||
+  currentConfig.tokenAddress.toLowerCase().includes("febe") ||
+  !currentConfig.curveAddress ||
+  currentConfig.curveAddress.toLowerCase().includes("febe")
+) {
+  console.warn("⚠️ [SECURITY] Detected invalid/unknown address (0xFEBe...). Resetting to official JEVBURN contracts!");
+  currentConfig.tokenAddress = OFFICIAL_JEVBURN_TOKEN;
+  currentConfig.curveAddress = OFFICIAL_JEVBURN_CURVE;
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify({
+      tokenAddress: OFFICIAL_JEVBURN_TOKEN,
+      curveAddress: OFFICIAL_JEVBURN_CURVE,
+      claimThresholdETH: currentConfig.claimThresholdETH,
+      pollIntervalSeconds: currentConfig.pollIntervalSeconds
+    }, null, 2), "utf-8");
+  } catch (e) {}
 }
 
 // Simpan config ke file
