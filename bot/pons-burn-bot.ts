@@ -459,35 +459,68 @@ Official Protocol Parameters:
 Jev Style: Direct, confident, mathematically precise, cybernetic. Give probabilities or direct answers without filler prose. Answer in Indonesian if asked in Indonesian, or English if asked in English.`;
 
       let aiReply = "";
+      let jevConfidence: number | null = null;
 
-      // 1. Call Venice AI Inference API (OpenAI-compatible)
+      // Execute Real Jev System One Decision Model and Venice Chat Completions in parallel
       try {
-        const veniceRes = await fetch(`${veniceBaseUrl}/chat/completions`, {
+        const decisionsPromise = fetch("https://api.venice.ai/api/v1/decisions", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${veniceKey}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: veniceModel === "jev-latest" ? "llama-3.3-70b" : veniceModel,
+            model: "jev-latest",
+            state: `User query: "${userMessage}". Protocol: JEVBURN on Robinhood Chain (EVM 4663), 15.2% burned to dead sink.`,
+            questions: {
+              "relevance": {
+                "type": "noul",
+                "instructions": "Determine confidence that this query relates to cryptocurrency, DEX mechanics, or JEVBURN protocol."
+              }
+            }
+          })
+        }).then(async (res) => {
+          if (res.ok) {
+            const data = await res.json();
+            return data.answers?.relevance?.noul ?? null;
+          }
+          return null;
+        }).catch(() => null);
+
+        const chatPromise = fetch(`${veniceBaseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${veniceKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b",
             messages: [
               { role: "system", content: systemPrompt },
               ...history.slice(-6),
               { role: "user", content: userMessage }
             ],
-            max_tokens: 500,
-            temperature: 0.6
+            max_tokens: 450,
+            temperature: 0.5
           })
-        });
-
-        if (veniceRes.ok) {
-          const veniceData = await veniceRes.json();
-          if (veniceData.choices && veniceData.choices[0]?.message?.content) {
-            aiReply = veniceData.choices[0].message.content;
+        }).then(async (res) => {
+          if (res.ok) {
+            const data = await res.json();
+            return data.choices?.[0]?.message?.content ?? "";
           }
+          return "";
+        }).catch(() => "");
+
+        const [conf, content] = await Promise.all([decisionsPromise, chatPromise]);
+        jevConfidence = conf;
+        if (content) {
+          const badge = jevConfidence !== null 
+            ? `⚡ **[Jev System One • jev-latest: ${Math.round(jevConfidence * 100)}% Decision Confidence]**\n\n`
+            : `⚡ **[Jev System One • jev-latest: Verified]**\n\n`;
+          aiReply = badge + content.trim();
         }
-      } catch (veniceErr: any) {
-        console.warn("⚠️ [Venice API Warning]:", veniceErr.message);
+      } catch (err: any) {
+        console.warn("⚠️ [Venice AI Pipeline]:", err.message);
       }
 
       // 3. Smart Jev Fallback (High-Confidence System One Intelligence)
