@@ -424,6 +424,90 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // Endpoint 4: POST /api/chat (Venice.ai Chat Assistant)
+  if (req.method === "POST" && (url === "/api/chat" || url === "/api/chat/")) {
+    try {
+      const body = await readBody();
+      const userMessage: string = (body.message || "").trim();
+      const history: Array<{ role: string; content: string }> = Array.isArray(body.history) ? body.history : [];
+
+      if (!userMessage) {
+        return sendJSON(res, 400, { success: false, error: "Message is required" });
+      }
+
+      const veniceKey = process.env.VENICE_API_KEY || "VENICE_INFERENCE_KEY_YZ6wU3PtdU92H9aWke903D070so5ehEmNhkeMGHTEC";
+      const veniceBaseUrl = process.env.VENICE_BASE_URL || "https://api.venice.ai/api/v1";
+      const veniceModel = process.env.VENICE_MODEL || "llama-3.3-70b";
+
+      const systemPrompt = `You are JEVBURN AI, the intelligent autonomous combustion AI for the $JEVBURN protocol on Robinhood Chain.
+Official Project Parameters:
+- Token Name: JEVBURN (Ticker: $JEVBURN)
+- Contract Address (CA): 0xa6a44f24780b95d467d482de278a017fd6d7c2b3
+- Official Pons Curve Address: 0x77cc005727f671058d9EC29F7D5e470bd99727F6
+- Irreversible Dead Sink: 0x000000000000000000000000000000000000dEaD
+- Blockchain Network: Robinhood Chain (EVM Chain ID: 4663, RPC: https://rpc.mainnet.chain.robinhood.com)
+- Total Initial Supply: 1,000,000,000 JEVBURN
+- Current Burn Milestone: Over 152,000,000+ JEVBURN (15.2% of total supply) has been permanently incinerated!
+- Mechanism: 100% of Pons Curve trading fees accumulated in FeeEscrow are programmatically claimed, swapped for $JEVBURN on Curve DEX, and permanently incinerated to the dead sink. Zero human intervention.
+- Verified On-Chain Ledger: https://jevburn.com/burn
+- Official Twitter/X: @jevburns
+
+Style: Cybernetic, concise, confident, transparent, helpful. Answer in Indonesian if asked in Indonesian, or in English if asked in English.`;
+
+      let aiReply = "";
+
+      // Try Venice AI API
+      try {
+        const veniceRes = await fetch(`${veniceBaseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${veniceKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: veniceModel,
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...history.slice(-6),
+              { role: "user", content: userMessage }
+            ],
+            max_tokens: 500,
+            temperature: 0.7
+          })
+        });
+
+        if (veniceRes.ok) {
+          const veniceData = await veniceRes.json();
+          if (veniceData.choices && veniceData.choices[0]?.message?.content) {
+            aiReply = veniceData.choices[0].message.content;
+          }
+        }
+      } catch (veniceErr: any) {
+        // Fallback to internal knowledge base
+      }
+
+      // Smart Fallback if Venice is unauthorized ($0 balance) or down
+      if (!aiReply) {
+        const lower = userMessage.toLowerCase();
+        if (lower.includes("ca") || lower.includes("contract") || lower.includes("address") || lower.includes("alamat")) {
+          aiReply = `Official Contract Address (CA) for **$JEVBURN**:\n\`0xa6a44f24780b95d467d482de278a017fd6d7c2b3\`\n\nNetwork: **Robinhood Chain (Chain ID: 4663)**\nSink: \`0x000000000000000000000000000000000000dEaD\``;
+        } else if (lower.includes("burn") || lower.includes("bakar") || lower.includes("supply") || lower.includes("persen") || lower.includes("berapa")) {
+          aiReply = `🔥 **Status Pembakaran Terkini:**\nLebih dari **152.000.000+ JEVBURN** (setara **15.2% dari total supply 1 Miliar**) telah hangus dibakar selamanya ke alamat Dead Sink!\n\nLihat bukti transaksi blok explorer secara realtime di [jevburn.com/burn](https://jevburn.com/burn).`;
+        } else if (lower.includes("cara") || lower.includes("kerja") || lower.includes("mekanisme") || lower.includes("what is") || lower.includes("how")) {
+          aiReply = `⚡ **Cara Kerja JEVBURN:**\n1. **Fee Accumulation**: Setiap transaksi trading di Pons Curve menghasilkan fee yang masuk ke FeeEscrow.\n2. **Auto-Claim**: Saat threshold tercapai, bot menarik ETH fee tersebut.\n3. **DEX Buyback**: ETH langsung ditukar membeli $JEVBURN di Curve DEX.\n4. **Dead Incineration**: 100% token yang dibeli langsung dikirim permanen ke \`0x000...dEaD\`.\n\nSistem ini berjalan otonom 24/7 tanpa campur tangan manusia!`;
+        } else if (lower.includes("twitter") || lower.includes("x") || lower.includes("sosmed")) {
+          aiReply = `Akun resmi kami di Twitter / X adalah **[@jevburns](https://x.com/jevburns)**. Pantau terus update pembakaran terbaru di sana!`;
+        } else {
+          aiReply = `Halo! Saya adalah **JEVBURN AI Assistant**. Saya siap menjawab pertanyaan seputar $JEVBURN, telemetri on-chain (152M+ burned), mekanisme buyback kurva, atau kontrak resmi kami di Robinhood Chain. Ada yang bisa saya bantu?`;
+        }
+      }
+
+      return sendJSON(res, 200, { success: true, reply: aiReply });
+    } catch (e: any) {
+      return sendJSON(res, 500, { success: false, error: e.message || "Chat server error" });
+    }
+  }
+
   return sendJSON(res, 404, { success: false, error: "Not Found" });
 });
 

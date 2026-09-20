@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFlywheelEngine } from './hooks/useBurnEngine';
 import { BurnPage } from './components/BurnPage';
+import { AIChatWidget } from './components/AIChatWidget';
 import { PONS_V2_CONFIG } from './contracts';
 import {
   Flame,
@@ -60,13 +61,16 @@ export function App() {
   // Route: /burn -> Dedicated Burn History Page
   if (route === '/burn') {
     return (
-      <BurnPage
-        state={state}
-        config={config}
-        logs={logs}
-        burnLedger={burnLedger}
-        onNavigateHome={navigateToHome}
-      />
+      <>
+        <BurnPage
+          state={state}
+          config={config}
+          logs={logs}
+          burnLedger={burnLedger}
+          onNavigateHome={navigateToHome}
+        />
+        <AIChatWidget />
+      </>
     );
   }
 
@@ -270,6 +274,9 @@ export function App() {
           ) : null}
         </div>
       </footer>
+
+      {/* Floating AI Chat Assistant */}
+      <AIChatWidget />
     </div>
   );
 }
