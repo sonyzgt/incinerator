@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { EnginePhase, FlywheelState, ActivityLog, MachineConfig } from '../types';
+import { EnginePhase, FlywheelState, ActivityLog, MachineConfig, BurnLedgerEntry } from '../types';
 import { PONS_V2_CONFIG } from '../contracts';
 import { sounds } from '../utils/audio';
-import { fetchOnChainEscrowBalance, fetchFullOnChainMetrics, fetchTokenCurve } from '../utils/web3';
+import { fetchOnChainEscrowBalance, fetchFullOnChainMetrics, fetchTokenCurve, fetchOnChainBurnLedger } from '../utils/web3';
 
 // Load from environment variables (.env) with strict fallback to official deployed contracts
 const rawToken = import.meta.env.VITE_TOKEN_ADDRESS;
 export const OFFICIAL_TOKEN_ADDRESS = rawToken || '0xa6a44f24780b95d467d482de278a017fd6d7c2b3';
-export const OFFICIAL_CURVE_ADDRESS = import.meta.env.VITE_CURVE_ADDRESS || '0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60';
-export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || '';
+export const OFFICIAL_CURVE_ADDRESS = import.meta.env.VITE_CURVE_ADDRESS || '0x77cc005727f671058d9EC29F7D5e470bd99727F6';
+export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || '0x71dfd25CFf0BEb5128Bf655A2e72a9D01b518F2c';
 export const OFFICIAL_RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';
 
 const ENV_CYCLE_INTERVAL = parseInt(import.meta.env.VITE_CYCLE_INTERVAL_SECONDS || '300', 10);
@@ -139,6 +139,7 @@ export function useFlywheelEngine() {
 
   const [state, setState] = useState<FlywheelState>(() => getInitialState(config));
   const [logs, setLogs] = useState<ActivityLog[]>(() => getInitialLogs(config));
+  const [burnLedger, setBurnLedger] = useState<BurnLedgerEntry[]>([]);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -163,7 +164,7 @@ export function useFlywheelEngine() {
     });
   }, []);
 
-  // Poll real on-chain metrics & curve automatically
+  // Poll real on-chain metrics & burn ledger automatically
   useEffect(() => {
     if (!isConfiguredAddress(config.tokenAddress)) return;
 
@@ -171,44 +172,105 @@ export function useFlywheelEngine() {
 
     const syncOnChain = async () => {
       try {
-        const metrics = await fetchFullOnChainMetrics(
-          config.tokenAddress,
-          config.curveAddress,
-          config.creatorAddress,
-          config.rpcUrl
-        );
+        const [metrics, ledgerRes] = await Promise.all([
+          fetchFullOnChainMetrics(
+            config.tokenAddress,
+            config.curveAddress,
+            config.creatorAddress,
+            config.rpcUrl
+          ),
+          fetchOnChainBurnLedger(
+            config.tokenAddress,
+            config.curveAddress,
+            config.creatorAddress,
+            config.rpcUrl
+          )
+        ]);
 
-        if (metrics && !isCancelled) {
-          // If curve address was resolved to something different, update config
-          if (metrics.curveAddress && metrics.curveAddress.toLowerCase() !== config.curveAddress.toLowerCase()) {
-            setConfig((prev) => ({ ...prev, curveAddress: metrics.curveAddress }));
-          }
+        if (isCancelled) return;
 
-          const escrow = metrics.escrowBalanceETH;
+        // If curve address was resolved to something different, update config
+        if (metrics?.curveAddress && metrics.curveAddress.toLowerCase() !== config.curveAddress.toLowerCase()) {
+          setConfig((prev) => ({ ...prev, curveAddress: metrics.curveAddress }));
+        }
+
+        if (ledgerRes && ledgerRes.entries && ledgerRes.entries.length > 0) {
+          setBurnLedger(ledgerRes.entries);
+
+          // Populate logs if empty so activity telemetry displays real on-chain actions
+          setLogs((prevLogs) => {
+            if (prevLogs.length === 0) {
+              const seedLogs: ActivityLog[] = [];
+              for (const entry of ledgerRes.entries.slice(0, 30)) {
+                seedLogs.push({
+                  id: `burn-${entry.id}`,
+                  timestamp: entry.timeStr.split(' (')[0],
+                  phase: 'burn',
+                  action: 'BURN TO DEAD',
+                  details: `Permanently incinerated ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} $JEVBURN to 0x000...dEaD`,
+                  txHash: entry.burnTx,
+                  amountETH: entry.claimedETH,
+                  amountToken: Math.round(entry.burnedJEV),
+                  status: 'success',
+                  contractTarget: '0x000...dEaD'
+                });
+                if (entry.buyTx && entry.buyTx !== entry.burnTx) {
+                  seedLogs.push({
+                    id: `buy-${entry.id}`,
+                    timestamp: entry.timeStr.split(' (')[0],
+                    phase: 'buyback',
+                    action: 'AUTO-BUYBACK',
+                    details: `Swapped ${entry.claimedETH.toFixed(4)} ETH on Curve -> bought ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} $JEVBURN`,
+                    txHash: entry.buyTx,
+                    amountETH: entry.claimedETH,
+                    amountToken: Math.round(entry.burnedJEV),
+                    status: 'success',
+                    contractTarget: 'Curve.buy()'
+                  });
+                }
+              }
+              return seedLogs;
+            }
+            return prevLogs;
+          });
+        }
+
+        setState((prev) => {
+          const escrow = metrics ? metrics.escrowBalanceETH : prev.currentEscrowBalanceETH;
           const threshold = config.claimThresholdETH;
           const progress = Math.min(100, Math.round((escrow / threshold) * 100));
+          const totalClaimed = (metrics && metrics.totalFeesClaimedETH > 0)
+            ? metrics.totalFeesClaimedETH
+            : (ledgerRes && ledgerRes.totalClaimedETH > 0 ? ledgerRes.totalClaimedETH : prev.totalFeesClaimedETH);
+          const totalBurned = (metrics && metrics.tokensBurned > 0)
+            ? metrics.tokensBurned
+            : (ledgerRes && ledgerRes.totalBurned > 0 ? ledgerRes.totalBurned : prev.totalTokensBurned);
+          const supply = (metrics && metrics.totalSupply > 0) ? metrics.totalSupply : prev.totalSupply;
+          const burnedPct = supply > 0 ? (totalBurned / supply) * 100 : prev.burnedPercentageOfSupply;
+          const cycles = ledgerRes && ledgerRes.cycleCount > 0 ? ledgerRes.cycleCount : prev.cycleCount;
 
-          setState((prev) => ({
+          return {
             ...prev,
             currentEscrowBalanceETH: escrow,
-            totalFeesClaimedETH: (metrics.totalFeesClaimedETH && metrics.totalFeesClaimedETH > 0) ? metrics.totalFeesClaimedETH : prev.totalFeesClaimedETH,
-            totalFeesClaimedUSD: ((metrics.totalFeesClaimedETH && metrics.totalFeesClaimedETH > 0) ? metrics.totalFeesClaimedETH : prev.totalFeesClaimedETH) * 2500,
+            cycleCount: cycles,
+            totalFeesClaimedETH: totalClaimed,
+            totalFeesClaimedUSD: totalClaimed * 2500,
             phaseProgress: prev.isWheelSpinning ? prev.phaseProgress : progress,
-            totalTokensBurned: metrics.tokensBurned > 0 ? metrics.tokensBurned : prev.totalTokensBurned,
-            deadAddressBalance: metrics.tokensBurned > 0 ? metrics.tokensBurned : prev.deadAddressBalance,
-            totalTokensBoughtBack: metrics.tokensBurned > 0 ? metrics.tokensBurned : prev.totalTokensBoughtBack,
-            burnedPercentageOfSupply: metrics.burnedPercentage > 0 ? metrics.burnedPercentage : prev.burnedPercentageOfSupply,
-            tokenPriceETH: metrics.tokenPriceETH > 0 ? metrics.tokenPriceETH : prev.tokenPriceETH,
-            tokenPriceUSD: metrics.tokenPriceUSD > 0 ? metrics.tokenPriceUSD : prev.tokenPriceUSD,
-            marketCapUSD: metrics.marketCapUSD > 0 ? metrics.marketCapUSD : prev.marketCapUSD,
-            totalSupply: metrics.totalSupply || prev.totalSupply,
+            totalTokensBurned: totalBurned,
+            deadAddressBalance: totalBurned,
+            totalTokensBoughtBack: totalBurned,
+            burnedPercentageOfSupply: burnedPct,
+            tokenPriceETH: (metrics && metrics.tokenPriceETH > 0) ? metrics.tokenPriceETH : prev.tokenPriceETH,
+            tokenPriceUSD: (metrics && metrics.tokenPriceUSD > 0) ? metrics.tokenPriceUSD : prev.tokenPriceUSD,
+            marketCapUSD: (metrics && metrics.marketCapUSD > 0) ? metrics.marketCapUSD : prev.marketCapUSD,
+            totalSupply: supply,
             lastActionText: prev.isWheelSpinning
               ? prev.lastActionText
               : escrow >= threshold
                 ? `Threshold reached (${escrow.toFixed(4)} / ${threshold} ETH)! Autonomous VPS Bot executing cycle...`
                 : `Wheel Idle: Escrow balance ${escrow.toFixed(4)} ETH (Target: ${threshold} ETH). Standby.`
-          }));
-        }
+          };
+        });
       } catch (e) {
         // ignore network hiccup
       }
@@ -463,6 +525,7 @@ export function useFlywheelEngine() {
     setConfig,
     resetConfigToDefaults,
     logs,
+    burnLedger,
     addLog,
     runFlywheelExecution,
   };

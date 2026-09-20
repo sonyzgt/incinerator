@@ -36,6 +36,21 @@ export interface ActivityLog {
   isRealTx?: boolean;
 }
 
+export interface BurnLedgerEntry {
+  id: string;
+  cycleNum: number;
+  timeStr: string;
+  timestamp: number;
+  claimedETH: number;
+  claimedUSD: number;
+  boughtETH: number;
+  boughtUSD: number;
+  burnedJEV: number;
+  claimTx: string;
+  buyTx: string;
+  burnTx: string;
+}
+
 export interface MachineConfig {
   networkName: string;
   chainId: number;

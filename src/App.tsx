@@ -18,6 +18,7 @@ export function App() {
     config,
     setConfig,
     logs,
+    burnLedger,
   } = useFlywheelEngine();
 
   // Simple client-side routing for /burn
@@ -63,6 +64,7 @@ export function App() {
         state={state}
         config={config}
         logs={logs}
+        burnLedger={burnLedger}
         onNavigateHome={navigateToHome}
       />
     );

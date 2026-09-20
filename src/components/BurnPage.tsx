@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Flame,
   ArrowLeft,
@@ -6,19 +6,17 @@ import {
   Copy,
   Check,
   Search,
-  Filter,
-  ShieldCheck,
-  TrendingUp,
-  Clock,
-  Layers,
+  RefreshCw,
 } from 'lucide-react';
-import { FlywheelState, ActivityLog, MachineConfig } from '../types';
+import { FlywheelState, ActivityLog, MachineConfig, BurnLedgerEntry } from '../types';
 import { PONS_V2_CONFIG } from '../contracts';
+import { fetchOnChainBurnLedger } from '../utils/web3';
 
 interface BurnPageProps {
   state: FlywheelState;
   config: MachineConfig;
   logs: ActivityLog[];
+  burnLedger?: BurnLedgerEntry[];
   onNavigateHome: () => void;
 }
 
@@ -26,14 +24,69 @@ export const BurnPage: React.FC<BurnPageProps> = ({
   state,
   config,
   logs,
+  burnLedger = [],
   onNavigateHome,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedDead, setCopiedDead] = useState(false);
+  const [localLedger, setLocalLedger] = useState<BurnLedgerEntry[]>(burnLedger);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const explorerUrl = 'https://explorer.mainnet.chain.robinhood.com';
   const deadAddress = config.deadAddress || PONS_V2_CONFIG.contracts.deadAddress;
-  const burnedPercent = state.burnedPercentageOfSupply;
+
+  // Sync if prop updates
+  useEffect(() => {
+    if (burnLedger && burnLedger.length > 0) {
+      setLocalLedger(burnLedger);
+    }
+  }, [burnLedger]);
+
+  // Direct fetch & polling from Robinhood Chain RPC
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchLedger = async () => {
+      try {
+        const res = await fetchOnChainBurnLedger(
+          config.tokenAddress,
+          config.curveAddress,
+          config.creatorAddress,
+          config.rpcUrl
+        );
+        if (res && res.entries.length > 0 && !isCancelled) {
+          setLocalLedger(res.entries);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    if (localLedger.length === 0) {
+      fetchLedger();
+    }
+    const interval = setInterval(fetchLedger, 8000);
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [config.tokenAddress, config.curveAddress, config.creatorAddress, config.rpcUrl, localLedger.length]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await fetchOnChainBurnLedger(
+        config.tokenAddress,
+        config.curveAddress,
+        config.creatorAddress,
+        config.rpcUrl
+      );
+      if (res && res.entries.length > 0) {
+        setLocalLedger(res.entries);
+      }
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
+  };
 
   const copyDead = () => {
     navigator.clipboard.writeText(deadAddress);
@@ -45,25 +98,23 @@ export const BurnPage: React.FC<BurnPageProps> = ({
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num);
   };
 
-  // Build burn ledger entries strictly from real logs
+  // Build fallback entries from activity logs
   const burnLogs = logs.filter(
     (l) => l.phase === 'burn' || l.action?.toLowerCase().includes('burn')
   );
 
-  const totalCompleted = state.cycleCount > 0 ? state.cycleCount : burnLogs.length;
-
-  const ledgerEntries = burnLogs.map((log, index) => {
+  const fallbackEntries: BurnLedgerEntry[] = burnLogs.map((log, index) => {
     const cycleNum = burnLogs.length - index;
     const ethAmount = log.amountETH || 0;
-    const ethPriceUSD = state.tokenPriceUSD > 0 ? state.tokenPriceUSD * 2.8e7 : 2400;
+    const ethPriceUSD = state.tokenPriceUSD > 0 ? state.tokenPriceUSD * 2.8e7 : 2500;
     const usdAmount = ethAmount * ethPriceUSD;
     const tokensBurned = log.amountToken || 0;
 
     return {
-      id: log.id || `FIRE-${cycleNum}`,
+      id: log.id || `CYCLE-${cycleNum}`,
       cycleNum,
       timeStr: log.timestamp,
-      timestamp: log.timestamp,
+      timestamp: Date.now() / 1000,
       claimedETH: ethAmount,
       claimedUSD: usdAmount,
       boughtETH: ethAmount,
@@ -74,6 +125,26 @@ export const BurnPage: React.FC<BurnPageProps> = ({
       burnTx: log.txHash || '',
     };
   });
+
+  const ledgerEntries = localLedger.length > 0 ? localLedger : fallbackEntries;
+
+  const totalCompleted = ledgerEntries.length > 0
+    ? ledgerEntries.length
+    : (state.cycleCount > 0 ? state.cycleCount : burnLogs.length);
+
+  const totalTokensBurned = state.totalTokensBurned > 0
+    ? state.totalTokensBurned
+    : ledgerEntries.reduce((acc, cur) => acc + cur.burnedJEV, 0);
+
+  const burnedPercent = state.burnedPercentageOfSupply > 0
+    ? state.burnedPercentageOfSupply
+    : (state.totalSupply > 0 ? (totalTokensBurned / state.totalSupply) * 100 : (totalTokensBurned / 1_000_000_000) * 100);
+
+  const totalETHDeployed = state.totalFeesClaimedETH > 0
+    ? state.totalFeesClaimedETH
+    : ledgerEntries.reduce((acc, cur) => acc + cur.claimedETH, 0);
+
+  const totalUSDDeployed = totalETHDeployed * 2500;
 
   const filteredEntries = ledgerEntries.filter((entry) => {
     if (!searchTerm) return true;
@@ -180,7 +251,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           <div className="p-4 sm:p-5 rounded-xl bg-[#111217] border border-[#24252a]">
             <span className="text-xs text-[#a6a39d]">Total Burned</span>
             <div className="text-xl sm:text-2xl font-bold text-[#ff5722] font-mono mt-1">
-              {formatNumber(state.totalTokensBurned)}
+              {formatNumber(totalTokensBurned)}
             </div>
             <span className="text-xs text-[#a6a39d] mt-1 block">JEVBURN permanently destroyed</span>
           </div>
@@ -196,9 +267,9 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           <div className="p-4 sm:p-5 rounded-xl bg-[#111217] border border-[#24252a]">
             <span className="text-xs text-[#a6a39d]">Total ETH Deployed</span>
             <div className="text-xl sm:text-2xl font-bold text-white font-mono mt-1">
-              {state.totalFeesClaimedETH.toFixed(4)} ETH
+              {totalETHDeployed.toFixed(4)} ETH
             </div>
-            <span className="text-xs text-[#a6a39d] mt-1 block">≈ ${formatNumber(state.totalFeesClaimedUSD)} USD buyback</span>
+            <span className="text-xs text-[#a6a39d] mt-1 block">≈ ${formatNumber(totalUSDDeployed)} USD buyback</span>
           </div>
 
           <div className="p-4 sm:p-5 rounded-xl bg-[#111217] border border-[#24252a]">
@@ -223,16 +294,28 @@ export const BurnPage: React.FC<BurnPageProps> = ({
               </p>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-[#a6a39d] absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by Cycle or Tx..."
-                className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-[#0d0e12] border border-[#24252a] text-xs text-white placeholder-[#555258] focus:outline-none focus:border-[#ff5722]"
-              />
+            {/* Controls */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="p-2 rounded-lg bg-[#0d0e12] border border-[#24252a] text-[#a6a39d] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                title="Sync on-chain records from Robinhood RPC"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#ff5722]' : ''}`} />
+              </button>
+
+              {/* Search Input */}
+              <div className="relative flex-1 sm:w-64">
+                <Search className="w-4 h-4 text-[#a6a39d] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by Cycle or Tx..."
+                  className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-[#0d0e12] border border-[#24252a] text-xs text-white placeholder-[#555258] focus:outline-none focus:border-[#ff5722]"
+                />
+              </div>
             </div>
           </div>
 

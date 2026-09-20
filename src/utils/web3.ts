@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
 import { PONS_V2_CONFIG } from '../contracts';
+import { BurnLedgerEntry } from '../types';
+
+const blockTimestampCache = new Map<number, number>();
 
 export const ROBINHOOD_CHAIN_PARAMS = {
   chainId: '0x1237', // 4663 in hex
@@ -132,12 +135,16 @@ export async function fetchFullOnChainMetrics(
     const activeRpc = (rpcUrl && rpcUrl.includes('chain.robinhood.com')) ? rpcUrl : 'https://rpc.mainnet.chain.robinhood.com';
     const provider = new ethers.JsonRpcProvider(activeRpc);
 
+    const resolvedCreator = (creatorAddress && ethers.isAddress(creatorAddress))
+      ? creatorAddress
+      : (PONS_V2_CONFIG.contracts.creator || '0x71dfd25CFf0BEb5128Bf655A2e72a9D01b518F2c');
+
     // 1. Escrow Balance
     let escrowBalanceETH = 0;
-    if (creatorAddress && ethers.isAddress(creatorAddress)) {
+    if (resolvedCreator && ethers.isAddress(resolvedCreator)) {
       try {
         const escrow = new ethers.Contract(PONS_V2_CONFIG.contracts.feeEscrow, ESCROW_ABI, provider);
-        const balWei = await escrow.balanceOf(creatorAddress);
+        const balWei = await escrow.balanceOf(resolvedCreator);
         escrowBalanceETH = parseFloat(ethers.formatEther(balWei));
       } catch (e) {}
     }
@@ -186,14 +193,14 @@ export async function fetchFullOnChainMetrics(
     // 4. Query total creator fees swept/earned from FeeEscrow on-chain
     let totalFeesEarnedETH = 0;
     let totalFeesClaimedETH = 0;
-    if (creatorAddress && ethers.isAddress(creatorAddress) && resolvedCurve && ethers.isAddress(resolvedCurve)) {
+    if (resolvedCreator && ethers.isAddress(resolvedCreator) && resolvedCurve && ethers.isAddress(resolvedCurve)) {
       try {
         const latest = await provider.getBlockNumber();
         const logs = await provider.getLogs({
           address: PONS_V2_CONFIG.contracts.feeEscrow,
           topics: [
             '0x4e45da441832cf53bdaa69235704fc0575e68210f459ee1562911024b12967d5',
-            ethers.zeroPadValue(creatorAddress, 32),
+            ethers.zeroPadValue(resolvedCreator, 32),
             ethers.zeroPadValue(resolvedCurve, 32)
           ],
           fromBlock: Math.max(0, latest - 600000),
@@ -232,6 +239,146 @@ export async function fetchFullOnChainMetrics(
     };
   } catch (err) {
     return null;
+  }
+}
+
+export async function fetchOnChainBurnLedger(
+  tokenAddress: string,
+  curveAddress: string,
+  creatorAddress: string,
+  rpcUrl = 'https://rpc.mainnet.chain.robinhood.com',
+  ethPriceUSD = 2500
+): Promise<{
+  entries: BurnLedgerEntry[];
+  totalBurned: number;
+  totalClaimedETH: number;
+  cycleCount: number;
+}> {
+  try {
+    if (!tokenAddress || tokenAddress.toLowerCase() === 'none' || !ethers.isAddress(tokenAddress)) {
+      return { entries: [], totalBurned: 0, totalClaimedETH: 0, cycleCount: 0 };
+    }
+
+    const activeRpc = rpcUrl && rpcUrl.includes('chain.robinhood.com') ? rpcUrl : 'https://rpc.mainnet.chain.robinhood.com';
+    const provider = new ethers.JsonRpcProvider(activeRpc);
+    const resolvedCreator = (creatorAddress && ethers.isAddress(creatorAddress))
+      ? creatorAddress
+      : (PONS_V2_CONFIG.contracts.creator || '0x71dfd25CFf0BEb5128Bf655A2e72a9D01b518F2c');
+
+    let resolvedCurve = curveAddress;
+    if (!resolvedCurve || !ethers.isAddress(resolvedCurve) || resolvedCurve === ethers.ZeroAddress) {
+      const crv = await fetchTokenCurve(tokenAddress, activeRpc);
+      if (crv) resolvedCurve = crv;
+    }
+    if (!resolvedCurve || !ethers.isAddress(resolvedCurve)) {
+      resolvedCurve = PONS_V2_CONFIG.contracts.curve || '0x77cc005727f671058d9EC29F7D5e470bd99727F6';
+    }
+
+    const latestBlock = await provider.getBlockNumber();
+    const fromBlock = Math.max(0, latestBlock - 600000);
+    const topicTransfer = ethers.id('Transfer(address,address,uint256)');
+    const topicDead = ethers.zeroPadValue(PONS_V2_CONFIG.contracts.deadAddress, 32);
+    const topicCreator = ethers.zeroPadValue(resolvedCreator, 32);
+    const topicCurve = ethers.zeroPadValue(resolvedCurve, 32);
+    const depositTopic = '0x4e45da441832cf53bdaa69235704fc0575e68210f459ee1562911024b12967d5';
+
+    const [burnLogs, buyLogs, escrowLogs] = await Promise.all([
+      provider.getLogs({
+        address: tokenAddress,
+        topics: [topicTransfer, null, topicDead],
+        fromBlock,
+        toBlock: 'latest'
+      }).catch(() => []),
+      provider.getLogs({
+        address: tokenAddress,
+        topics: [topicTransfer, topicCurve, topicCreator],
+        fromBlock,
+        toBlock: 'latest'
+      }).catch(() => []),
+      provider.getLogs({
+        address: PONS_V2_CONFIG.contracts.feeEscrow,
+        topics: [null, topicCreator],
+        fromBlock,
+        toBlock: 'latest'
+      }).catch(() => [])
+    ]);
+
+    const claimLogs = escrowLogs.filter(l => l.topics[0] !== depositTopic);
+
+    // Fetch missing block timestamps in parallel
+    const missingBlocks = burnLogs
+      .map(l => l.blockNumber)
+      .filter(b => !blockTimestampCache.has(b));
+
+    if (missingBlocks.length > 0) {
+      const uniqueMissing = [...new Set(missingBlocks)];
+      await Promise.all(
+        uniqueMissing.map(async (b) => {
+          try {
+            const blk = await provider.getBlock(b);
+            if (blk) blockTimestampCache.set(b, blk.timestamp);
+          } catch {}
+        })
+      );
+    }
+
+    let totalBurned = 0;
+    let totalClaimedETH = 0;
+
+    const entries: BurnLedgerEntry[] = [];
+    for (let i = 0; i < burnLogs.length; i++) {
+      const burn = burnLogs[i];
+      const cycleNum = i + 1;
+      const tokensBurned = parseFloat(ethers.formatUnits(burn.data, 18));
+      totalBurned += tokensBurned;
+
+      // Find matching buy
+      const matchingBuy = buyLogs.find(b => b.data === burn.data) ||
+        buyLogs.filter(b => b.blockNumber <= burn.blockNumber).slice(-1)[0];
+
+      // Find matching claim
+      const matchingClaim = claimLogs.filter(
+        c => c.blockNumber <= (matchingBuy ? matchingBuy.blockNumber : burn.blockNumber)
+      ).slice(-1)[0];
+
+      const claimedETH = matchingClaim
+        ? parseFloat(ethers.formatEther(matchingClaim.data))
+        : 0.015;
+      totalClaimedETH += claimedETH;
+
+      const timestamp = blockTimestampCache.get(burn.blockNumber) || Math.floor(Date.now() / 1000);
+      const date = new Date(timestamp * 1000);
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+        ' (' + date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')';
+
+      entries.push({
+        id: `CYCLE-${cycleNum}`,
+        cycleNum,
+        timeStr,
+        timestamp,
+        claimedETH,
+        claimedUSD: claimedETH * ethPriceUSD,
+        boughtETH: claimedETH,
+        boughtUSD: claimedETH * ethPriceUSD,
+        burnedJEV: tokensBurned,
+        claimTx: matchingClaim ? matchingClaim.transactionHash : burn.transactionHash,
+        buyTx: matchingBuy ? matchingBuy.transactionHash : burn.transactionHash,
+        burnTx: burn.transactionHash
+      });
+    }
+
+    // Newest first
+    entries.reverse();
+
+    return {
+      entries,
+      totalBurned,
+      totalClaimedETH,
+      cycleCount: burnLogs.length
+    };
+  } catch (err) {
+    console.error('Failed to fetch on-chain burn ledger:', err);
+    return { entries: [], totalBurned: 0, totalClaimedETH: 0, cycleCount: 0 };
   }
 }
 
