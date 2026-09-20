@@ -7,7 +7,7 @@ import { fetchOnChainEscrowBalance, fetchFullOnChainMetrics, fetchTokenCurve } f
 
 // Load from environment variables (.env) with strict fallback to official deployed contracts
 const rawToken = import.meta.env.VITE_TOKEN_ADDRESS;
-export const OFFICIAL_TOKEN_ADDRESS = rawToken || '';
+export const OFFICIAL_TOKEN_ADDRESS = rawToken || '0xa6a44f24780b95d467d482de278a017fd6d7c2b3';
 export const OFFICIAL_CURVE_ADDRESS = import.meta.env.VITE_CURVE_ADDRESS || '0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60';
 export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || '';
 export const OFFICIAL_RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';

@@ -3,7 +3,7 @@ export const PONS_V2_CONFIG = {
   chainName: 'Robinhood Chain',
   currency: 'ETH',
   contracts: {
-    token: import.meta.env.VITE_TOKEN_ADDRESS || '',
+    token: import.meta.env.VITE_TOKEN_ADDRESS || '0xa6a44f24780b95d467d482de278a017fd6d7c2b3',
     curve: import.meta.env.VITE_CURVE_ADDRESS || '0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60',
     creator: import.meta.env.VITE_CREATOR_ADDRESS || '',
     factory: '0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e',

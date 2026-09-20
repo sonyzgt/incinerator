@@ -18,6 +18,7 @@ JEVBURN operates on a perpetual closed-loop mechanism:
 
 | Contract | Address |
 |---|---|
+| **Token Contract (JEVBURN)** | `0xa6a44f24780b95d467d482de278a017fd6d7c2b3` |
 | **Pons Factory** | `0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e` |
 | **Fee Escrow Vault** | `0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e` |
 | **Buyback Vault** | `0x42df2a798f82289E177311362e8f5ccC45c1219c` |
@@ -43,7 +44,7 @@ Edit `.env`:
 ```env
 VITE_TOKEN_NAME="JEVBURN"
 VITE_TOKEN_SYMBOL="JEVBURN"
-VITE_TOKEN_ADDRESS="0x..."
+VITE_TOKEN_ADDRESS="0xa6a44f24780b95d467d482de278a017fd6d7c2b3"
 VITE_CURVE_ADDRESS="0x..."
 VITE_CREATOR_ADDRESS="0x..."
 VITE_CLAIM_THRESHOLD_ETH="0.015"
