@@ -440,8 +440,10 @@ const server = http.createServer(async (req, res) => {
       const veniceModel = process.env.VENICE_MODEL || "jev-latest";
       const veniceDecisionsUrl = process.env.VENICE_DECISIONS_URL || "https://api.venice.ai/api/v1/decisions";
 
-      const systemPrompt = `You are Jev (System One decision model on Venice.ai), functioning as the autonomous combustion and intelligence brain for $JEVBURN.
+      const systemPrompt = `You are Jev, the System One autonomous decision intelligence from Venice.ai for $JEVBURN.
 "Jev answers, it doesn't write."
+Never say you are Llama or any other foundation model. You are strictly Jev, the decision model developed on Venice.ai.
+
 Official Protocol Parameters:
 - Token: JEVBURN ($JEVBURN)
 - Contract Address (CA): 0xa6a44f24780b95d467d482de278a017fd6d7c2b3
@@ -499,9 +501,10 @@ Jev Style: Direct, confident, mathematically precise, cybernetic. Give probabili
           return terms.some((t) => lower.includes(t));
         };
 
+        const textWithoutTokenName = userMessage.toLowerCase().replace(/\$?jevburn/g, '').trim();
         if (hasAcronym(['dca']) || hasTerm(['dollar cost', 'dollar-cost', 'averaging'])) {
           aiReply = `[Jev Decision: Verified 100%]\n\n📊 **Apa itu DCA (Dollar-Cost Averaging)?**\n**DCA** adalah strategi akumulasi aset dengan membeli dalam nominal tetap secara berkala tanpa berspekulasi pada *market timing*. Ini meminimalkan risiko fluktuasi harga jangka pendek.\n\n⚡ **Bagaimana $JEVBURN Menerapkan DCA Otomatis?**\nProtokol $JEVBURN menjalankan **Algorithmic Continuous DCA Buyback**:\n1. Setiap trading di Curve DEX menghasilkan swap fee di FeeEscrow.\n2. Flywheel bot otomatis melakukan eksekusi 'DCA Buyback' menggunakan akumulasi ETH fee untuk membeli token $JEVBURN dari market.\n3. 100% token hasil DCA buyback langsung dikirim ke \`0x000...dEaD\` untuk dimusnahkan selamanya!`;
-        } else if (hasTerm(['burn', 'bakar', 'supply', 'persen', 'milestone', 'hangus', 'deflasi'])) {
+        } else if (['burn', 'bakar', 'supply', 'persen', 'milestone', 'hangus', 'deflasi'].some((t) => textWithoutTokenName.includes(t))) {
           aiReply = `[Jev Telemetry Assessment]\n\n🔥 **Status Pembakaran Aktif:**\n• Total Burned: **151.999.585+ $JEVBURN**\n• Ratio: **15.20% dari total 1.000.000.000 supply** telah hangus permanen!\n• Status Sink: 100% terkunci di \`0x000...dEaD\`.\n• Ledger Real-time: [jevburn.com/burn](https://jevburn.com/burn)`;
         } else if (hasTerm(['cara', 'kerja', 'mekanisme', 'flywheel', 'how', 'what is', 'sistem', 'algoritma', 'beli', 'buy'])) {
           aiReply = `[Jev System One Architecture]\n\n⚡ **Algoritma Flywheel JEVBURN:**\n1. **Fee Capture**: Setiap trade di Curve menghasilkan fee otomatis di FeeEscrow.\n2. **Threshold Sweep**: Bot mendeteksi saldo >= 0.015 ETH dan memanggil \`claim()\`.\n3. **DEX Buyback**: ETH hasil claim otomatis dieksekusi membeli $JEVBURN di Curve DEX.\n4. **Dead Incineration**: 100% token dikirim ke \`0x000...dEaD\`.\n\nConfidence: 100% On-Chain Verifiable.`;

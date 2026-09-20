@@ -78,8 +78,9 @@ export const AIChatWidget: React.FC = () => {
       return `[Jev Decision: Verified 100%]\n\n📊 **Apa itu DCA (Dollar-Cost Averaging)?**\n**DCA** adalah strategi investasi di mana seseorang membeli aset secara berkala dengan nominal tetap tanpa memedulikan fluktuasi harga sesaat (*market timing*). Tujuannya memperhalus harga beli rata-rata (*average entry*) dan meminimalkan risiko volatilitas.\n\n⚡ **Bagaimana $JEVBURN Mengadopsi DCA Otomatis?**\nProtokol $JEVBURN menjalankan **Algorithmic Continuous DCA Buyback**:\n1. Setiap trading di Curve DEX menghasilkan swap fee di FeeEscrow.\n2. Flywheel bot secara berkala melakukan eksekusi 'DCA Buyback' menggunakan akumulasi ETH fee untuk membeli token $JEVBURN dari market.\n3. 100% token hasil DCA buyback langsung dikirim ke \`0x000...dEaD\` untuk dimusnahkan permanen!`;
     }
 
-    // 2. Burn / Supply Stats (Prioritas sebelum CA agar pertanyaan seperti "berapa token yang dibakar" masuk ke sini)
-    if (hasTerm(['burn', 'bakar', 'supply', 'persen', 'milestone', 'hangus', 'deflasi'])) {
+    // 2. Burn / Supply Stats (Abaikan kata 'jevburn' agar nama token tidak memicu ini)
+    const textWithoutTokenName = text.toLowerCase().replace(/\$?jevburn/g, '').trim();
+    if (['burn', 'bakar', 'supply', 'persen', 'milestone', 'hangus', 'deflasi'].some((t) => textWithoutTokenName.includes(t))) {
       return `[Jev Telemetry Assessment]\n\n🔥 **Status Pembakaran Aktif:**\n• Total Burned: **151.999.585+ $JEVBURN**\n• Rasio Hangus: **15.20% dari total 1.000.000.000 supply** telah hangus selamanya!\n• Status Sink: 100% terkunci di \`0x000...dEaD\`.\n• Ledger Real-time: [jevburn.com/burn](https://jevburn.com/burn)`;
     }
 
