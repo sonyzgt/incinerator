@@ -129,39 +129,6 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-[#090a0d] text-[#f5f3ef] font-satoshi selection:bg-[#ff5722] selection:text-[#090a0d]">
-      
-      {/* Top Protocol Broadcast Marquee Banner */}
-      <div className="w-full bg-[#0d0e12] border-b border-[#222329] text-xs font-mono text-[#a6a39d] overflow-hidden select-none">
-        <div className="flex items-center h-8 px-4">
-          <div className="shrink-0 flex items-center gap-1.5 pr-4 border-r border-[#222329] text-[10px] uppercase tracking-wider font-semibold text-[#ff5722] bg-[#0d0e12] z-10">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722] animate-pulse" />
-            <span>FURNACE LIVE</span>
-          </div>
-          <div className="flex-1 overflow-hidden relative">
-            <div className="animate-marquee whitespace-nowrap flex items-center">
-              {[
-                `🔥 ${formatNumber(state.totalTokensBurned)} HOT PERMANENTLY BURNED (${burnedPercent.toFixed(2)}% OF TOTAL SUPPLY)`,
-                `⚡ 100% PROGRAMMATIC REINVESTMENT • ZERO HUMAN INTERVENTION`,
-                `💎 ${state.totalFeesClaimedETH.toFixed(4)} ETH SWEPT DIRECTLY INTO DEX BUYBACKS`,
-                `🛡️ ROBINHOOD MAINNET [4663] • PONS v2 ARCHITECTURE`,
-                `🚀 ZERO ADMIN KEYS • CONTINUOUS ON-CHAIN INCINERATOR`,
-              ].concat([
-                `🔥 ${formatNumber(state.totalTokensBurned)} HOT PERMANENTLY BURNED (${burnedPercent.toFixed(2)}% OF TOTAL SUPPLY)`,
-                `⚡ 100% PROGRAMMATIC REINVESTMENT • ZERO HUMAN INTERVENTION`,
-                `💎 ${state.totalFeesClaimedETH.toFixed(4)} ETH SWEPT DIRECTLY INTO DEX BUYBACKS`,
-                `🛡️ ROBINHOOD MAINNET [4663] • PONS v2 ARCHITECTURE`,
-                `🚀 ZERO ADMIN KEYS • CONTINUOUS ON-CHAIN INCINERATOR`,
-              ]).map((item, idx) => (
-                <span key={idx} className="inline-flex items-center gap-2 mx-6 text-[11px] text-[#c5c2bc] font-medium">
-                  <span>{item}</span>
-                  <span className="text-[#48464b]">&bull;</span>
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Navigation Header */}
       <header className="h-16 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-[#222329] bg-[#090a0d]/90 sticky top-0 z-40 backdrop-blur-md">
         {/* Brand: HOT Furnace */}

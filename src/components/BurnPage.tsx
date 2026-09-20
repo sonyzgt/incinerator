@@ -103,21 +103,6 @@ export const BurnPage: React.FC<BurnPageProps> = ({
 
   return (
     <div className="min-h-screen bg-[#090a0d] text-[#f5f3ef] font-satoshi flex flex-col selection:bg-[#ff5722] selection:text-[#090a0d]">
-      {/* Top Banner Ticker */}
-      <div className="w-full bg-[#0d0e12] border-b border-[#24252a] text-xs font-mono text-[#a6a39d] py-1.5 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#ff5722] animate-pulse" />
-          <span className="text-[#ff5722] font-semibold text-[11px] uppercase tracking-wider">
-            HOT BURN LEDGER
-          </span>
-          <span className="text-[#48464b]">//</span>
-          <span className="text-zinc-400 text-[11px]">ROBINHOOD MAINNET [4663]</span>
-        </div>
-        <div className="text-[11px] font-mono text-[#a6a39d] hidden sm:block">
-          TOTAL BURNED: <strong className="text-white">{formatNumber(state.totalTokensBurned)} HOT</strong> ({burnedPercent.toFixed(2)}%)
-        </div>
-      </div>
-
       {/* Navigation Bar */}
       <header className="h-16 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-[#24252a] bg-[#090a0d]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="flex items-center gap-4">
