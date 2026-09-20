@@ -43,60 +43,42 @@ try {
 const CONFIG_FILE = path.resolve(process.cwd(), "bot-config.json");
 
 // Admin password untuk otorisasi API dari /memex
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "Sonyfree24@";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "SonySecure_" + Math.random().toString(36).substring(2, 10);
 
-const OFFICIAL_JEVBURN_TOKEN = "0xa6a44f24780b95d467d482de278a017fd6d7c2b3";
-const OFFICIAL_JEVBURN_CURVE = "0x77cc005727f671058d9EC29F7D5e470bd99727F6";
+export const OFFICIAL_JEVBURN_TOKEN = "0xa6a44f24780b95d467d482de278a017fd6d7c2b3";
+export const OFFICIAL_JEVBURN_CURVE = "0x77cc005727f671058d9EC29F7D5e470bd99727F6";
 
-// Default Config
+// Default Config (Token CA & Curve dikunci mati secara permanen ke $JEVBURN)
 let currentConfig = {
   rpcUrl: process.env.RPC_URL || process.env.VITE_RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
   privateKey: process.env.CREATOR_PRIVATE_KEY || process.env.PRIVATE_KEY || "",
-  tokenAddress: process.env.TOKEN_ADDRESS || process.env.VITE_TOKEN_ADDRESS || OFFICIAL_JEVBURN_TOKEN,
-  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || OFFICIAL_JEVBURN_CURVE,
+  tokenAddress: OFFICIAL_JEVBURN_TOKEN,
+  curveAddress: OFFICIAL_JEVBURN_CURVE,
   claimThresholdETH: process.env.CLAIM_THRESHOLD_ETH || process.env.VITE_CLAIM_THRESHOLD_ETH || "0.015",
   pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || "10", 10),
   port: parseInt(process.env.PORT || "5005", 10)
 };
 
-// Baca config tersimpan jika ada
+// Baca config tersimpan jika ada (hanya untuk threshold dan poll interval)
 if (fs.existsSync(CONFIG_FILE)) {
   try {
     const saved = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
-    currentConfig = { ...currentConfig, ...saved };
-    console.log("📂 [CONFIG] Konfigurasi dimuat dari bot-config.json");
+    if (saved.claimThresholdETH) currentConfig.claimThresholdETH = saved.claimThresholdETH;
+    if (saved.pollIntervalSeconds) currentConfig.pollIntervalSeconds = saved.pollIntervalSeconds;
+    console.log("📂 [CONFIG] Konfigurasi dimuat dari bot-config.json (Token CA & Curve terkunci pada $JEVBURN)");
   } catch (e) {
     console.error("⚠️ Gagal membaca bot-config.json, menggunakan environment default");
   }
 }
 
-// Strict safeguard: reject 0xFEBe and enforce official contracts
-if (
-  !currentConfig.tokenAddress ||
-  currentConfig.tokenAddress.toLowerCase().includes("febe") ||
-  !currentConfig.curveAddress ||
-  currentConfig.curveAddress.toLowerCase().includes("febe")
-) {
-  console.warn("⚠️ [SECURITY] Detected invalid/unknown address (0xFEBe...). Resetting to official JEVBURN contracts!");
-  currentConfig.tokenAddress = OFFICIAL_JEVBURN_TOKEN;
-  currentConfig.curveAddress = OFFICIAL_JEVBURN_CURVE;
-  try {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify({
-      tokenAddress: OFFICIAL_JEVBURN_TOKEN,
-      curveAddress: OFFICIAL_JEVBURN_CURVE,
-      claimThresholdETH: currentConfig.claimThresholdETH,
-      pollIntervalSeconds: currentConfig.pollIntervalSeconds
-    }, null, 2), "utf-8");
-  } catch (e) {}
-}
-
-// Simpan config ke file
+// Simpan config ke file (Token CA & Curve tidak akan pernah bisa diubah oleh siapa pun)
 function saveConfigToFile(newCfg: Partial<typeof currentConfig>) {
-  currentConfig = { ...currentConfig, ...newCfg };
+  if (newCfg.claimThresholdETH) currentConfig.claimThresholdETH = newCfg.claimThresholdETH;
+  if (newCfg.pollIntervalSeconds) currentConfig.pollIntervalSeconds = newCfg.pollIntervalSeconds;
   try {
     const toSave = {
-      tokenAddress: currentConfig.tokenAddress,
-      curveAddress: currentConfig.curveAddress,
+      tokenAddress: OFFICIAL_JEVBURN_TOKEN,
+      curveAddress: OFFICIAL_JEVBURN_CURVE,
       claimThresholdETH: currentConfig.claimThresholdETH,
       pollIntervalSeconds: currentConfig.pollIntervalSeconds
     };
@@ -496,14 +478,23 @@ const server = http.createServer(async (req, res) => {
       }
 
       const updates: any = {};
-      if (body.tokenAddress !== undefined) updates.tokenAddress = body.tokenAddress.trim();
-      if (body.curveAddress !== undefined) updates.curveAddress = body.curveAddress.trim();
-      if (body.claimThresholdETH !== undefined) updates.claimThresholdETH = String(body.claimThresholdETH).trim();
-      if (body.pollIntervalSeconds !== undefined) updates.pollIntervalSeconds = parseInt(body.pollIntervalSeconds, 10);
+      // Security: Token Address & Curve Address are permanently locked to $JEVBURN and cannot be modified remotely
+      if (body.claimThresholdETH !== undefined) {
+        const parsedThreshold = parseFloat(body.claimThresholdETH);
+        if (!isNaN(parsedThreshold) && parsedThreshold >= 0.005) {
+          updates.claimThresholdETH = String(parsedThreshold);
+        }
+      }
+      if (body.pollIntervalSeconds !== undefined) {
+        const parsedSec = parseInt(body.pollIntervalSeconds, 10);
+        if (!isNaN(parsedSec) && parsedSec >= 5) {
+          updates.pollIntervalSeconds = parsedSec;
+        }
+      }
 
       saveConfigToFile(updates);
 
-      addLog("success", `[MEMEX SYNC] Settings updated from /memex panel! Token CA: ${currentConfig.tokenAddress}`);
+      addLog("success", `[MEMEX SYNC] Parameters updated! Threshold: ${currentConfig.claimThresholdETH} ETH, Poll: ${currentConfig.pollIntervalSeconds}s`);
 
       setTimeout(() => {
         executeCycle().catch(console.error);
@@ -511,11 +502,13 @@ const server = http.createServer(async (req, res) => {
 
       return sendJSON(res, 200, {
         success: true,
-        message: "Bot configuration successfully updated!",
+        message: "Bot parameters updated! (Token & Curve remain securely locked to $JEVBURN)",
         data: {
           tokenAddress: currentConfig.tokenAddress,
           curveAddress: currentConfig.curveAddress,
-          status: isValidAddress(currentConfig.tokenAddress) ? "active" : "standby"
+          claimThresholdETH: currentConfig.claimThresholdETH,
+          pollIntervalSeconds: currentConfig.pollIntervalSeconds,
+          status: "active"
         }
       });
     } catch (e: any) {
