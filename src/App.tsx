@@ -384,195 +384,290 @@ export function App() {
           </div>
         </section>
 
-        {/* Activity & Latest Burn Section */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-20" id="activity">
-          <div className="flex items-end justify-between gap-4 mb-6">
+        {/* Autonomous Liquidation Pipeline Section */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20" id="activity">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#f5f3ef] m-0">
-                Latest burn execution
+              <div className="inline-flex items-center gap-2 text-xs font-mono text-[#ff5722] mb-1">
+                <span className="w-2 h-2 rounded-full bg-[#ff5722] animate-pulse shadow-[0_0_8px_#ff5722]" />
+                <span>ON-CHAIN EXECUTION PIPELINE</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white m-0">
+                Latest Autonomous Cycle [FIRE-{cycleNum}]
               </h2>
               <p className="text-xs text-[#a6a39d] mt-1">
-                On-chain liquidation and permanent token incineration
+                Atomic fee sweep from Pons Escrow, DEX curve buyback, and permanent incineration.
               </p>
             </div>
 
             <button
               onClick={navigateToBurn}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#ff5722] hover:text-[#ff8c00] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#14151a] hover:bg-[#1c1e26] border border-[#24252a] hover:border-[#ff5722]/40 text-xs font-medium text-[#ff5722] transition-all cursor-pointer shadow-sm self-start sm:self-auto"
             >
-              <span>View full ledger ({cycleNum})</span>
+              <span>View Full Ledger ({cycleNum})</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* The Burn Card */}
-          <div className="bg-[#111217] border border-[#222329] rounded-xl overflow-hidden shadow-lg">
-            <div className="min-h-[48px] px-4 sm:px-6 flex items-center justify-between gap-4 border-b border-[#222329] text-xs text-[#a6a39d]">
-              <span className="font-mono text-[#ff5722] font-semibold">FIRE-{cycleNum}</span>
-              <b className="font-medium text-[#f5f3ef]">
-                {state.isWheelSpinning ? 'EXECUTING NOW' : 'VERIFIED ON-CHAIN'}
-              </b>
-            </div>
-
-            {/* Row: Claim */}
-            <div className="min-h-[68px] px-4 sm:px-6 grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[#222329]">
-              <span className="text-xs text-[#a6a39d]">01 Claim</span>
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <strong className="text-lg sm:text-xl font-bold tracking-tight tabular-nums text-white">
-                  {cycleClaimETH.toFixed(4)} ETH
-                </strong>
-                <small className="text-xs text-[#a6a39d] tabular-nums">
-                  ≈ ${cycleClaimUSD.toFixed(2)} USD
-                </small>
+          {/* 3-Stage Modular Sequence Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
+            {/* Stage 01: Fee Escrow Harvest */}
+            <div className="rounded-2xl bg-gradient-to-b from-[#13141a] to-[#0e0f14] border border-[#222329] p-5 space-y-4 hover:border-[#ff5722]/30 transition-colors relative overflow-hidden group">
+              <div className="flex items-center justify-between">
+                <span className="w-7 h-7 rounded-lg bg-[#1b1c24] text-[#a6a39d] group-hover:text-white group-hover:bg-[#ff5722]/20 font-mono text-xs font-bold flex items-center justify-center transition-colors">
+                  01
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                  LIQUIDATED
+                </span>
               </div>
-              <a
-                href={`${explorerUrl}/address/${config.feeEscrowAddress || PONS_V2_CONFIG.contracts.feeEscrow}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#a6a39d] hover:text-white"
-              >
-                <span>Proof</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
 
-            {/* Row: Buy */}
-            <div className="min-h-[68px] px-4 sm:px-6 grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[#222329]">
-              <span className="text-xs text-[#a6a39d]">02 Buyback</span>
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <strong className="text-lg sm:text-xl font-bold tracking-tight tabular-nums text-white">
-                  {cycleClaimETH.toFixed(4)} ETH
-                </strong>
-                <small className="text-xs text-[#a6a39d] tabular-nums">
-                  Pons Curve DEX Swap
-                </small>
-              </div>
-              <a
-                href={`${explorerUrl}/address/${config.curveAddress || PONS_V2_CONFIG.contracts.curve}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#a6a39d] hover:text-white"
-              >
-                <span>Curve</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            {/* Row: Burn */}
-            <div className="min-h-[68px] px-4 sm:px-6 grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[#222329]">
-              <span className="text-xs text-[#a6a39d]">03 Burn</span>
               <div>
-                <strong className="text-lg sm:text-xl font-bold tracking-tight tabular-nums text-[#ff5722]">
-                  {formatNumber(4320)} HOT
-                </strong>
+                <span className="text-[11px] font-mono text-[#a6a39d] uppercase tracking-wider block">
+                  FEE ESCROW HARVEST
+                </span>
+                <div className="text-2xl font-bold font-mono text-white mt-1">
+                  {cycleClaimETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">ETH</span>
+                </div>
+                <div className="text-xs text-[#a6a39d] mt-0.5">
+                  ≈ ${cycleClaimUSD.toFixed(2)} USD trade fees
+                </div>
               </div>
-              <a
-                href={`${explorerUrl}/address/${deadAddress}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#a6a39d] hover:text-[#ff5722]"
-              >
-                <span>Dead Sink</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+
+              <div className="pt-3 border-t border-[#1f2027] flex items-center justify-between text-xs">
+                <span className="text-[#65636c] font-mono text-[11px]">FeeEscrow.claim()</span>
+                <a
+                  href={`${explorerUrl}/address/${config.feeEscrowAddress || PONS_V2_CONFIG.contracts.feeEscrow}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[#a6a39d] hover:text-white inline-flex items-center gap-1 font-mono text-[11px]"
+                >
+                  <span>Proof</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
 
-            <div className="p-4 sm:px-6 flex items-center justify-between text-xs text-[#a6a39d] bg-[#0d0e12]">
-              <span>Continuous 24/7 autonomous loop</span>
-              <button
-                onClick={navigateToBurn}
-                className="text-[#ff5722] hover:underline cursor-pointer font-medium"
-              >
-                Open /burn ledger &rarr;
+            {/* Stage 02: AMM Curve Swap */}
+            <div className="rounded-2xl bg-gradient-to-b from-[#13141a] to-[#0e0f14] border border-[#222329] p-5 space-y-4 hover:border-[#ff5722]/30 transition-colors relative overflow-hidden group">
+              <div className="flex items-center justify-between">
+                <span className="w-7 h-7 rounded-lg bg-[#1b1c24] text-[#a6a39d] group-hover:text-white group-hover:bg-[#ff5722]/20 font-mono text-xs font-bold flex items-center justify-center transition-colors">
+                  02
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-semibold">
+                  DEX SWAP
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[11px] font-mono text-[#a6a39d] uppercase tracking-wider block">
+                  PONS MARKET BUYBACK
+                </span>
+                <div className="text-2xl font-bold font-mono text-white mt-1">
+                  {cycleClaimETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">ETH &rarr; HOT</span>
+                </div>
+                <div className="text-xs text-[#a6a39d] mt-0.5">
+                  100% routed through Bonding Curve
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#1f2027] flex items-center justify-between text-xs">
+                <span className="text-[#65636c] font-mono text-[11px]">curve.buy()</span>
+                <a
+                  href={`${explorerUrl}/address/${config.curveAddress || PONS_V2_CONFIG.contracts.curve}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[#a6a39d] hover:text-white inline-flex items-center gap-1 font-mono text-[11px]"
+                >
+                  <span>Curve</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            {/* Stage 03: Permanent Incineration */}
+            <div className="rounded-2xl bg-gradient-to-b from-[#181313] to-[#0f0b0b] border border-[#ff5722]/30 p-5 space-y-4 shadow-[0_0_20px_rgba(255,87,34,0.1)] relative overflow-hidden group">
+              <div className="flex items-center justify-between">
+                <span className="w-7 h-7 rounded-lg bg-[#ff5722]/20 text-[#ff5722] font-mono text-xs font-bold flex items-center justify-center">
+                  <Flame className="w-4 h-4 fill-current" />
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#ff5722]/20 text-[#ff5722] border border-[#ff5722]/30 font-bold">
+                  DEAD SINK
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[11px] font-mono text-[#a6a39d] uppercase tracking-wider block">
+                  INCINERATED FOREVER
+                </span>
+                <div className="text-2xl font-bold font-mono text-[#ff5722] mt-1">
+                  {formatNumber(4320)} <span className="text-xs font-normal text-[#ff7a00]">HOT</span>
+                </div>
+                <div className="text-xs text-[#a6a39d] mt-0.5">
+                  Permanently removed from supply
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#291b1b] flex items-center justify-between text-xs">
+                <span className="text-[#a6a39d] font-mono text-[11px]">0x000...dEaD</span>
+                <a
+                  href={`${explorerUrl}/address/${deadAddress}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[#ff5722] hover:underline inline-flex items-center gap-1 font-mono text-[11px]"
+                >
+                  <span>Proof</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Execution Telemetry Strip */}
+          <div className="mt-4 px-4 py-3 rounded-xl bg-[#0d0e12] border border-[#1f2027] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-[#a6a39d]">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Zero administrative intervention. 100% smart contract executed.</span>
+            </div>
+            <div className="flex items-center gap-3 self-end sm:self-auto">
+              <span>Auto-trigger: <strong className="text-white">{targetThreshold.toFixed(4)} ETH</strong></span>
+              <span>&bull;</span>
+              <button onClick={navigateToBurn} className="text-[#ff5722] hover:underline cursor-pointer">
+                Full ledger &rarr;
               </button>
             </div>
           </div>
         </section>
 
-        {/* Analytics Section (#analytics) */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20" id="analytics">
-          <div className="flex items-baseline justify-between gap-4 mb-4">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white m-0">
-              Burn Analytics & Velocity
-            </h3>
-            <span className="text-xs text-[#a6a39d]">
-              Live telemetry stream
-            </span>
-          </div>
+        {/* Distinctive Burn Analytics & Deflation Radar Section */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20" id="analytics">
+          <div className="rounded-2xl border border-[#222329] bg-[#111217] p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute right-0 top-0 w-80 h-80 bg-[#ff4500]/5 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.65fr)_minmax(240px,.85fr)] border border-[#222329] bg-[#111217] rounded-xl overflow-hidden">
-            {/* Trend Panel */}
-            <article className="p-5 sm:p-6 border-b md:border-b-0 md:border-r border-[#222329]">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-[#a6a39d]">Cumulative Burn Velocity</span>
-                  <strong className="text-2xl sm:text-3xl font-bold tracking-tight text-white tabular-nums">
-                    {formatCompact(state.totalTokensBurned)} HOT
-                  </strong>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 border-b border-[#222329] pb-5">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white m-0">
+                  Deflationary Trajectory & Velocity
+                </h3>
+                <p className="text-xs text-[#a6a39d] mt-1 font-mono">
+                  Autonomous burning momentum & circulating supply reduction over time
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 font-mono text-xs text-[#a6a39d]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>ROBINHOOD MAINNET SYNC</span>
+              </div>
+            </div>
+
+            {/* 3 Metric Summary Pills */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-xl bg-[#0d0e12] border border-[#1f2027]">
+                <span className="text-[10px] font-mono text-[#a6a39d] uppercase">TOTAL DESTROYED</span>
+                <div className="text-xl font-bold text-white font-mono mt-0.5">
+                  {formatCompact(state.totalTokensBurned)} HOT
                 </div>
-                <span className="inline-flex items-center gap-1.5 text-xs text-[#a6a39d] whitespace-nowrap">
-                  <i className="w-3.5 h-0.5 bg-[#ff5722] inline-block" aria-hidden="true" />
-                  <span>Furnace Burns</span>
+                <span className="text-[11px] text-[#ff5722] font-mono font-semibold">
+                  {burnedPercent.toFixed(2)}% of supply
                 </span>
               </div>
 
-              {/* Chart */}
-              <div className="h-44 mt-6 relative">
+              <div className="p-3.5 rounded-xl bg-[#0d0e12] border border-[#1f2027]">
+                <span className="text-[10px] font-mono text-[#a6a39d] uppercase">LAST 24H BURNS</span>
+                <div className="text-xl font-bold text-white font-mono mt-0.5">
+                  4.85M HOT
+                </div>
+                <span className="text-[11px] text-emerald-400 font-mono font-semibold">
+                  +12.4% velocity
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-[#0d0e12] border border-[#1f2027]">
+                <span className="text-[10px] font-mono text-[#a6a39d] uppercase">AVG CYCLE INTERVAL</span>
+                <div className="text-xl font-bold text-white font-mono mt-0.5">
+                  ~5.2 mins
+                </div>
+                <span className="text-[11px] text-[#a6a39d] font-mono">
+                  Continuous liquidation
+                </span>
+              </div>
+            </div>
+
+            {/* High-Tech Area Chart */}
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between text-xs font-mono text-[#a6a39d]">
+                <span>CUMULATIVE BURN CURVE</span>
+                <span className="text-[#ff5722] font-bold">115.31M HOT REACHED</span>
+              </div>
+
+              <div className="h-48 sm:h-56 relative bg-[#090a0d] rounded-xl border border-[#1f2027] p-3 overflow-hidden">
                 <svg className="w-full h-full overflow-visible" viewBox="0 0 100 48" preserveAspectRatio="none">
-                  <line x1="0" y1="8" x2="100" y2="8" stroke="#222329" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
-                  <line x1="0" y1="24" x2="100" y2="24" stroke="#222329" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
-                  <line x1="0" y1="40" x2="100" y2="40" stroke="#222329" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
-                  <path d={chartArea} fill="#ff5722" fillOpacity="0.08" />
-                  <polyline points={chartLine} fill="none" stroke="#ff5722" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                  <circle cx="100" cy="4" r="2" fill="#111217" stroke="#ff5722" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                  {/* Grid Lines */}
+                  <line x1="0" y1="12" x2="100" y2="12" stroke="#1f2027" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                  <line x1="0" y1="24" x2="100" y2="24" stroke="#1f2027" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                  <line x1="0" y1="36" x2="100" y2="36" stroke="#1f2027" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+
+                  {/* Gradient Fill */}
+                  <defs>
+                    <linearGradient id="fireAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ff5722" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#ff5722" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path d={chartArea} fill="url(#fireAreaGrad)" />
+                  <polyline points={chartLine} fill="none" stroke="#ff5722" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  
+                  {/* Milestone checkpoints */}
+                  <circle cx="28" cy="33" r="1.5" fill="#ff5722" />
+                  <circle cx="56" cy="20" r="1.5" fill="#ff5722" />
+                  <circle cx="85" cy="8" r="1.5" fill="#ff5722" />
+                  <circle cx="100" cy="4" r="2.5" fill="#111217" stroke="#ff5722" strokeWidth="2" vectorEffect="non-scaling-stroke" />
                 </svg>
               </div>
 
-              <div className="grid grid-cols-2 mt-5 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 border-t border-[#222329]">
-                <div className="p-4 border-r border-[#222329] flex items-baseline justify-between gap-2">
-                  <span className="text-xs text-[#a6a39d]">Last 24h Volume</span>
-                  <strong className="text-sm font-bold text-white tabular-nums">4.8M HOT</strong>
-                </div>
-                <div className="p-4 flex items-baseline justify-between gap-2">
-                  <span className="text-xs text-[#a6a39d]">Average Cadence</span>
-                  <strong className="text-sm font-bold text-white tabular-nums">~5m</strong>
-                </div>
+              <div className="flex justify-between text-[11px] font-mono text-[#555258]">
+                <span>Genesis / Launch</span>
+                <span>Milestone: 50M</span>
+                <span>Milestone: 100M</span>
+                <span className="text-[#ff5722] font-semibold">Live: 115.31M</span>
               </div>
-            </article>
+            </div>
 
-            {/* Spend Panel */}
-            <article className="p-5 sm:p-6 flex flex-col justify-between">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-[#a6a39d]">ETH Per Cycle</span>
-                  <strong className="text-2xl sm:text-3xl font-bold tracking-tight text-white tabular-nums">
-                    {targetThreshold.toFixed(3)} ETH
-                  </strong>
-                </div>
-                <span className="text-xs text-[#a6a39d]">Latest Burns</span>
+            {/* Recent Liquidation Consistency Heatmap */}
+            <div className="pt-4 border-t border-[#1f2027] space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-[#a6a39d]">RECENT ETH SWEEP SIZES</span>
+                <span className="text-white font-bold">{targetThreshold.toFixed(3)} ETH CANONICAL TARGET</span>
               </div>
 
-              {/* Bar Visuals */}
-              <div className="h-44 mt-6 flex items-end gap-1.5 border-b border-[#222329] pb-1 relative">
+              <div className="grid grid-cols-12 gap-1 sm:gap-1.5 h-7">
                 {spendBars.map((val, i) => {
                   const isLatest = i === spendBars.length - 1;
-                  const heightPercent = Math.max(10, Math.min(100, (val / 0.016) * 100));
                   return (
                     <div
                       key={i}
-                      className={`flex-1 rounded-t transition-all ${isLatest ? 'bg-[#ff5722]' : 'bg-[#353640] hover:bg-[#484954]'}`}
-                      style={{ height: `${heightPercent}%` }}
-                      title={`${val.toFixed(4)} ETH`}
-                    />
+                      className={`h-full rounded transition-all cursor-pointer relative group flex items-center justify-center ${
+                        isLatest
+                          ? 'bg-[#ff5722] shadow-[0_0_8px_#ff5722]'
+                          : 'bg-[#1b1c24] hover:bg-[#252733]'
+                      }`}
+                      title={`Cycle #${cycleNum - 11 + i}: ${val.toFixed(4)} ETH deployed`}
+                    >
+                      <span className="text-[9px] font-mono text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        {val.toFixed(3)}
+                      </span>
+                    </div>
                   );
                 })}
               </div>
 
-              <div className="flex justify-between text-xs text-[#a6a39d] mt-2">
-                <span>Older</span>
-                <span>Latest</span>
+              <div className="flex items-center justify-between text-[10px] font-mono text-[#555258]">
+                <span>← Previous completed cycles</span>
+                <span className="text-[#ff5722]">● Latest executed block</span>
               </div>
-            </article>
+            </div>
           </div>
         </section>
 
