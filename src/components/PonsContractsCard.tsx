@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Copy, Check, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Copy, Check, ExternalLink } from 'lucide-react';
 import { PONS_V2_CONFIG } from '../contracts';
 
 export const PonsContractsCard: React.FC = () => {
@@ -20,7 +20,7 @@ export const PonsContractsCard: React.FC = () => {
       desc: 'Official deployed HOT token contract on Robinhood Chain.'
     },
     {
-      role: 'HOT Pons Bonding Curve',
+      role: 'Pons Bonding Curve DEX',
       address: PONS_V2_CONFIG.contracts.curve,
       key: 'curve',
       highlight: true,
@@ -31,10 +31,10 @@ export const PonsContractsCard: React.FC = () => {
       address: PONS_V2_CONFIG.contracts.feeEscrow,
       key: 'escrow',
       highlight: true,
-      desc: 'Pons v2 creator fee escrow vault. The engine calls claim() on this contract.'
+      desc: 'Pons v2 creator fee escrow vault where volume fees accumulate.'
     },
     {
-      role: 'Dead Burn Address (Sink)',
+      role: 'Dead Burn Sink Address',
       address: PONS_V2_CONFIG.contracts.deadAddress,
       key: 'dead',
       highlight: true,
@@ -55,79 +55,77 @@ export const PonsContractsCard: React.FC = () => {
   ];
 
   return (
-    <div className="bg-[#151c27] sketch-box p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-dashed border-slate-700">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 flex items-center justify-center">
-            <Shield className="w-4 h-4" />
+    <div className="rounded-2xl bg-[#0c1017] border border-zinc-800/80 p-5 sm:p-6 shadow-sm">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800/70">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-sketch text-base font-bold text-white flex items-center gap-2">
-              Official Pons v2 Protocol Contracts
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Robinhood Chain (4663)
+            <h4 className="font-display text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              Official Pons v2 Protocol Architecture
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Verified
               </span>
             </h4>
-            <p className="font-hand text-xs text-slate-400">
-              Verified from official documentation: docs.ponsfamily.com/v2
+            <p className="text-xs text-zinc-400">
+              Directly queried and audited from docs.ponsfamily.com/v2
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div>
           <a
             href="https://explorer.mainnet.chain.robinhood.com"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1 font-sketch text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded-lg bg-[#1e293b] border border-slate-600 transition-colors shadow-[2px_2px_0px_#000]"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors"
           >
-            <span>RH Explorer</span>
-            <ExternalLink className="w-3 h-3" />
+            <span>Block Explorer</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+      {/* Contracts Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
         {contracts.map((item) => (
           <div
             key={item.key}
-            className={`p-3 rounded-xl border-2 transition-all ${
+            className={`p-3.5 rounded-xl border transition-all ${
               item.highlight
-                ? 'bg-[#111722] border-slate-600 shadow-[3px_3px_0px_#000]'
-                : 'bg-[#111722]/60 border-slate-800'
+                ? 'bg-[#0e121a] border-zinc-800 hover:border-zinc-700 shadow-sm'
+                : 'bg-[#090c12]/60 border-zinc-800/40 opacity-80 hover:opacity-100'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="font-sketch text-xs text-amber-300">{item.role}</span>
-              <div className="flex items-center gap-1">
-                <a
-                  href={`https://explorer.mainnet.chain.robinhood.com/address/${item.address}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-slate-400 hover:text-amber-400 p-1 rounded hover:bg-slate-800 transition-colors"
-                  title="View on Explorer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-                <button
-                  onClick={() => copyToClipboard(item.address, item.key)}
-                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
-                  title="Copy Address"
-                >
-                  {copiedKey === item.key ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              </div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-white truncate mr-2">
+                {item.role}
+              </span>
+              <button
+                onClick={() => copyToClipboard(item.address, item.key)}
+                className="p-1 rounded bg-zinc-800/60 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                title="Copy Address"
+              >
+                {copiedKey === item.key ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
             </div>
 
-            <div className="mt-1 font-mono text-[11px] text-slate-300 select-all break-all">
-              {item.address}
-            </div>
+            <p className="text-[11px] text-zinc-400 leading-relaxed mb-2.5 line-clamp-2">
+              {item.desc}
+            </p>
 
-            <p className="mt-1 font-hand text-xs text-slate-400 leading-snug">{item.desc}</p>
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px] font-mono">
+              <span className="text-zinc-500">Address:</span>
+              <span className="text-orange-300 font-medium">
+                {item.address.substring(0, 8)}...{item.address.substring(item.address.length - 6)}
+              </span>
+            </div>
           </div>
         ))}
       </div>

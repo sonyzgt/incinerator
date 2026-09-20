@@ -2,25 +2,19 @@
 
 @layer base {
   body {
-    font-family: 'Patrick Hand', cursive, sans-serif;
-    background-color: #0f141d;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #07090e;
     background-image: 
-      linear-gradient(rgba(30, 41, 59, 0.4) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30, 41, 59, 0.4) 1px, transparent 1px);
-    background-size: 24px 24px;
-    letter-spacing: 0.02em;
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(249, 115, 22, 0.08), transparent 70%),
+      radial-gradient(circle at 50% 50%, rgba(14, 18, 26, 0.5) 0%, #07090e 100%);
+    background-attachment: fixed;
+    letter-spacing: -0.01em;
+    color: #f4f4f5;
   }
 
-  h1, h2, h3, h4, .font-sketch {
-    font-family: 'Architects Daughter', cursive;
-  }
-
-  .font-hand {
-    font-family: 'Patrick Hand', cursive;
-  }
-
-  .font-doodle {
-    font-family: 'Caveat', cursive;
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Space Grotesk', -apple-system, sans-serif;
+    letter-spacing: -0.02em;
   }
 
   code, pre, .font-mono {
@@ -28,96 +22,90 @@
   }
 }
 
-/* Hand-Drawn Wobbly Borders */
-.sketch-box {
-  border: 2px solid #334155;
-  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
-  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
+/* Minimalist Glass Surfaces */
+.glass-panel {
+  background: rgba(13, 17, 24, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
 }
 
-.sketch-box:hover {
-  border-color: #64748b;
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.6);
+.glass-card {
+  background: #0c1017;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.sketch-card {
-  background: #18202c;
-  border: 2px solid #334155;
-  border-radius: 20px 250px 25px 240px/240px 25px 250px 20px;
-  box-shadow: 4px 4px 0px #0b0f16;
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Glow Effects */
+.glow-ember {
+  box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.25);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+}
+
+/* Modern Minimalist Compatibility Wrappers (replaces old comic styles) */
+.sketch-box, .sketch-card {
+  background: #0c1017;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .sketch-btn {
-  border: 2px solid currentColor;
-  border-radius: 255px 25px 225px 25px/25px 225px 25px 255px;
-  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.6);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  transition: all 0.15s ease;
 }
 
-.sketch-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
+.font-sketch, .font-hand, .font-doodle {
+  font-family: 'Inter', sans-serif;
 }
 
-/* Marker highlighter effect */
-.marker-yellow {
-  background: linear-gradient(120deg, rgba(251, 191, 36, 0.25) 0%, rgba(251, 191, 36, 0.35) 100%);
-  padding: 0 4px;
-  border-radius: 4px;
+/* Smooth Pulse Animation */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.96); }
 }
 
-.marker-cyan {
-  background: linear-gradient(120deg, rgba(34, 211, 238, 0.25) 0%, rgba(34, 211, 238, 0.35) 100%);
-  padding: 0 4px;
-  border-radius: 4px;
+.animate-soft-pulse {
+  animation: soft-pulse 2.5s ease-in-out infinite;
 }
 
-.marker-rose {
-  background: linear-gradient(120deg, rgba(244, 63, 94, 0.25) 0%, rgba(244, 63, 94, 0.35) 100%);
-  padding: 0 4px;
-  border-radius: 4px;
-}
-
-.marker-emerald {
-  background: linear-gradient(120deg, rgba(52, 211, 153, 0.25) 0%, rgba(52, 211, 153, 0.35) 100%);
-  padding: 0 4px;
-  border-radius: 4px;
-}
-
-/* Wobbly circle helper */
-.sketch-circle {
-  border-radius: 50% 48% 52% 49% / 49% 51% 49% 51%;
-}
-
-/* Rotations */
-@keyframes sketch-wobble {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(1deg);
-  }
-  75% {
-    transform: rotate(-1deg);
-  }
-}
-
-.animate-wobble {
-  animation: sketch-wobble 4s ease-in-out infinite;
-}
-
-/* Custom scrollbar */
+/* Minimalist Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0f141d;
+  background: #07090e;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #27272a;
   border-radius: 4px;
-  border: 1px solid #1e293b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
 }

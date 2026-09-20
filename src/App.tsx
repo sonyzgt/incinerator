@@ -94,7 +94,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f141d] text-slate-100 flex flex-col font-hand selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-[#07090e] text-zinc-100 flex flex-col font-sans selection:bg-orange-500/30 selection:text-orange-200">
       {/* Public Navigation Header */}
       <Header
         config={config}
@@ -102,13 +102,13 @@ export function App() {
       />
 
       {/* Main Workspace */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Top Key Performance Metrics */}
         <MetricsOverview state={state} />
 
-        {/* Central Flywheel Wheel Section */}
+        {/* Central Flywheel & Execution Console Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Main Wheel Container (Takes 7 columns on desktop) */}
+          {/* Main Flywheel Visualizer HUD (7 columns on desktop) */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             <FlywheelWheel
               currentPhase={state.currentPhase}
@@ -132,96 +132,105 @@ export function App() {
             />
           </div>
 
-          {/* Right Column: Execution Terminal & Architecture Notes */}
+          {/* Right Column: Execution Terminal & Architecture Notes (5 columns on desktop) */}
           <div className="lg:col-span-5 flex flex-col gap-4">
             {/* Live Terminal */}
             <LiveLogs logs={logs} />
 
-            {/* Hand-drawn Blueprint Architecture Notebook */}
-            <div className="p-5 bg-[#151c27] sketch-box space-y-3">
-              <div className="flex items-center gap-2 text-amber-300 font-sketch text-sm border-b-2 border-dashed border-slate-700 pb-2">
-                <BookOpen className="w-4 h-4 text-amber-400" />
-                <span>HOT Engine Architecture (Pons v2)</span>
+            {/* Protocol Architecture Bento Card */}
+            <div className="rounded-2xl bg-[#0c1017] border border-zinc-800/80 p-5 space-y-3.5 shadow-sm">
+              <div className="flex items-center justify-between border-b border-zinc-800/70 pb-3">
+                <div className="flex items-center gap-2 text-white font-display font-bold text-sm">
+                  <BookOpen className="w-4 h-4 text-orange-400" />
+                  <span>Flywheel Execution Protocol</span>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
+                  Pons v2
+                </span>
               </div>
 
-              <div className="space-y-2.5 text-xs text-slate-300 font-hand text-base leading-relaxed">
-                <div className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-md bg-sky-950 text-sky-400 border border-sky-600 font-bold flex items-center justify-center shrink-0 text-xs font-mono">
-                    1
+              <div className="space-y-2.5 text-xs text-zinc-300">
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
+                  <span className="w-5 h-5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                    01
                   </span>
-                  <p>
-                    <strong className="text-white font-sketch text-xs">5-Min Fee Accumulation:</strong> Traders buy tokens on the Pons Curve, building creator fees in Escrow. The wheel waits during this window.
+                  <p className="leading-relaxed">
+                    <strong className="text-white font-medium">Trading Fee Accumulation:</strong> Swaps on Pons Curve generate creator trading fees held securely in Escrow.
                   </p>
                 </div>
 
-                <div className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-md bg-amber-950 text-amber-400 border border-amber-600 font-bold flex items-center justify-center shrink-0 text-xs font-mono">
-                    2
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
+                  <span className="w-5 h-5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                    02
                   </span>
-                  <p>
-                    <strong className="text-white font-sketch text-xs">Auto-Claim Fee:</strong> Every 5 minutes (or when threshold is hit), the pointer advances to Claim Fee and calls <code className="text-amber-300 text-xs font-mono">claim()</code> on the Pons Escrow (<code className="text-amber-300 text-xs font-mono">0xd3AFEB...Ac9e</code>).
+                  <p className="leading-relaxed">
+                    <strong className="text-white font-medium">Auto-Claim Trigger:</strong> When fees reach the target threshold, the autonomous bot calls <code className="text-amber-300 text-[11px] font-mono">claim()</code> on the FeeEscrow contract.
                   </p>
                 </div>
 
-                <div className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-600 font-bold flex items-center justify-center shrink-0 text-xs font-mono">
-                    3
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
+                  <span className="w-5 h-5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                    03
                   </span>
-                  <p>
-                    <strong className="text-white font-sketch text-xs">Auto-Buyback:</strong> The claimed ETH is instantly swapped for tokens via <code className="text-emerald-300 text-xs font-mono">curve.buy()</code>, generating constant buying support.
+                  <p className="leading-relaxed">
+                    <strong className="text-white font-medium">DEX Market Buyback:</strong> 100% of claimed ETH is instantly swapped for $HOT via <code className="text-emerald-300 text-[11px] font-mono">curve.buy()</code>.
                   </p>
                 </div>
 
-                <div className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-md bg-rose-950 text-rose-400 border border-rose-600 font-bold flex items-center justify-center shrink-0 text-xs font-mono">
-                    4
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#0e121a] border border-zinc-800/50">
+                  <span className="w-5 h-5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold flex items-center justify-center shrink-0 text-[10px] font-mono">
+                    04
                   </span>
-                  <p>
-                    <strong className="text-white font-sketch text-xs">Auto-Burn to Dead:</strong> All bought tokens are sent to the dead address (<code className="text-rose-300 text-xs font-mono">0x0...dEaD</code>), permanently reducing circulating supply. The wheel then resets to the 5-minute countdown.
+                  <p className="leading-relaxed">
+                    <strong className="text-white font-medium">Permanent Incineration:</strong> Acquired tokens are immediately transferred to <code className="text-rose-300 text-[11px] font-mono">0x0...dEaD</code>, shrinking supply forever.
                   </p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t-2 border-dashed border-slate-700/80 flex items-center gap-1.5 text-xs text-slate-400 font-doodle text-sm">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Runs automatically every 5 minutes in a closed loop.</span>
+              <div className="pt-2 border-t border-zinc-800/60 flex items-center gap-2 text-[11px] text-zinc-400 font-mono">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Runs 24/7 autonomously without human intervention.</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Pons Official Contracts Card */}
+        {/* Official Protocol Contracts */}
         <PonsContractsCard />
       </main>
 
-      {/* Footer */}
-      <footer className="w-full bg-[#111722] border-t-2 border-slate-700/80 py-4 px-4 sm:px-8 text-center text-xs text-slate-400 font-hand text-base">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div>
-            HOT &bull; Deployed on Robinhood Chain (ID: 4663)
+      {/* Modern Minimalist Footer */}
+      <footer className="w-full bg-[#080b10] border-t border-zinc-800/80 py-5 px-4 sm:px-6 lg:px-8 text-xs text-zinc-400 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            <span className="text-zinc-500">Protocol:</span>
+            <span className="text-zinc-200 font-medium">HOT Flywheel v2</span>
+            <span className="text-zinc-600">&bull;</span>
+            <span className="text-zinc-400">Robinhood Chain (4663)</span>
           </div>
-          <div className="flex items-center gap-2.5 sm:gap-3 font-sketch text-xs">
+
+          <div className="flex items-center gap-3 font-mono text-xs">
             {/* Twitter (@hotonrh) */}
             <a
               href="https://x.com/hotonrh"
               target="_blank"
               rel="noreferrer"
-              className="px-3 py-1 bg-[#18202c] hover:bg-slate-800 text-sky-400 hover:text-sky-300 border border-slate-700 rounded-lg flex items-center gap-1.5 transition-colors shadow-[2px_2px_0px_#000]"
+              className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg flex items-center gap-1.5 transition-colors"
               title="HOT on Twitter / X (@hotonrh)"
             >
               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
               <span>Twitter</span>
-              <ArrowUpRight className="w-3 h-3 opacity-70" />
+              <ArrowUpRight className="w-3 h-3 text-zinc-500" />
             </a>
 
             {/* Docs */}
             <button
               onClick={navigateToDocs}
-              className="px-3 py-1 bg-[#18202c] hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-slate-700 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-[2px_2px_0px_#000]"
+              className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
               <span>Docs</span>
             </button>
 
@@ -229,7 +238,7 @@ export function App() {
               href="https://docs.ponsfamily.com/v2"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-amber-400 transition-colors flex items-center gap-1 text-slate-400"
+              className="text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
             >
               <span>Pons v2 Reference</span>
               <ArrowUpRight className="w-3.5 h-3.5" />

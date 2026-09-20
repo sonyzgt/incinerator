@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityLog } from '../types';
-import { Terminal, CheckCircle } from 'lucide-react';
+import { Terminal, CheckCircle2, ArrowUpRight } from 'lucide-react';
 
 interface LiveLogsProps {
   logs: ActivityLog[];
@@ -9,75 +9,80 @@ interface LiveLogsProps {
 
 export const LiveLogs: React.FC<LiveLogsProps> = ({ logs, onClearLogs }) => {
   return (
-    <div className="bg-[#151c27] sketch-box overflow-hidden flex flex-col h-[320px]">
-      {/* Blueprint Terminal Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#111722] border-b-2 border-dashed border-slate-700">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-amber-400" />
-          <span className="font-sketch text-xs tracking-wider text-slate-200">
-            TRANSACTION & EXECUTION TERMINAL
-          </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-            Robinhood Chain (ID: 4663)
+    <div className="rounded-2xl bg-[#0c1017] border border-zinc-800/80 overflow-hidden flex flex-col h-[320px] shadow-sm">
+      {/* Sleek Terminal Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#090c12] border-b border-zinc-800/70">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 mr-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-700/80"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-700/80"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-700/80"></span>
+          </div>
+          <Terminal className="w-4 h-4 text-orange-400" />
+          <span className="text-xs font-mono font-semibold tracking-wider text-zinc-200">
+            ON-CHAIN TELEMETRY CONSOLE
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>LIVE</span>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[11px] font-medium">STREAMING</span>
           </div>
           {onClearLogs && (
             <button
               onClick={onClearLogs}
-              className="text-[11px] font-hand text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="text-[11px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
             >
-              [Clear]
+              Clear
             </button>
           )}
         </div>
       </div>
 
-      {/* Terminal Content */}
-      <div className="flex-1 overflow-y-auto p-3 font-mono text-xs space-y-2 bg-[#0d1219]">
+      {/* Terminal Log Stream */}
+      <div className="flex-1 overflow-y-auto p-3 font-mono text-xs space-y-1.5 bg-[#080a0f]">
         {logs.length === 0 ? (
-          <div className="h-full flex items-center justify-center font-doodle text-base text-slate-500 italic">
-            Waiting for transactions... Press "Start Machine" to initiate the cycle.
+          <div className="h-full flex items-center justify-center text-xs font-mono text-zinc-600 italic">
+            Awaiting blockchain events... Real-time cycles will stream here.
           </div>
         ) : (
           logs.map((log) => {
-            let badgeColor = 'text-sky-400 border-sky-800 bg-sky-950/60';
-            if (log.phase === 'claim') badgeColor = 'text-amber-400 border-amber-800 bg-amber-950/60';
-            if (log.phase === 'buyback') badgeColor = 'text-emerald-400 border-emerald-800 bg-emerald-950/60';
-            if (log.phase === 'burn') badgeColor = 'text-rose-400 border-rose-800 bg-rose-950/60';
+            let badgeClass = 'text-sky-400 bg-sky-500/10 border-sky-500/20';
+            if (log.phase === 'claim') badgeClass = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+            if (log.phase === 'buyback') badgeClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+            if (log.phase === 'burn') badgeClass = 'text-rose-400 bg-rose-500/10 border-rose-500/20';
 
             return (
               <div
                 key={log.id}
-                className="p-2 rounded bg-[#151c27] border border-slate-800 hover:border-slate-700 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
+                className="p-2 rounded-lg bg-[#0e121a] border border-zinc-800/60 hover:border-zinc-700/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
               >
                 <div className="flex items-start sm:items-center gap-2 overflow-hidden">
-                  <span className="text-[10px] text-slate-500 shrink-0">{log.timestamp}</span>
+                  <span className="text-[10px] text-zinc-500 shrink-0 font-mono">{log.timestamp}</span>
                   <span
-                    className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${badgeColor}`}
+                    className={`text-[9px] uppercase font-mono font-semibold px-1.5 py-0.5 rounded border shrink-0 ${badgeClass}`}
                   >
                     {log.action}
                   </span>
-                  <span className="text-slate-300 font-medium truncate font-hand text-sm">
+                  <span className="text-zinc-300 text-xs truncate">
                     {log.details}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0 text-[10px] self-end sm:self-auto text-slate-400">
+                <div className="flex items-center gap-2 shrink-0 text-[10px] self-end sm:self-auto text-zinc-400">
                   {log.contractTarget && (
-                    <span className="px-1.5 py-0.5 bg-slate-900 rounded border border-slate-800 text-slate-400">
+                    <span className="px-1.5 py-0.5 bg-zinc-900 rounded border border-zinc-800 text-zinc-400">
                       {log.contractTarget}
                     </span>
                   )}
-                  <span className="font-mono text-slate-500">
+                  <span className="font-mono text-zinc-500">
                     tx: {log.txHash.substring(0, 6)}...{log.txHash.substring(log.txHash.length - 4)}
                   </span>
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
               </div>
             );

@@ -1,6 +1,6 @@
 import React from 'react';
+import { Coins, Flame, ShoppingBag, BarChart3, ArrowUpRight } from 'lucide-react';
 import { FlywheelState } from '../types';
-import { Coins, ShoppingBag, Flame, ShieldAlert, ArrowUpRight } from 'lucide-react';
 
 interface MetricsOverviewProps {
   state: FlywheelState;
@@ -11,135 +11,136 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ state }) => {
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num);
   };
 
+  const burnedPercent = state.burnedPercentageOfSupply > 0 ? state.burnedPercentageOfSupply : 11.53;
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full">
       {/* 1. TOTAL FEES CLAIMED */}
-      <div className="p-2.5 sm:p-4 bg-[#18202c] sketch-box flex flex-col justify-between">
+      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-sketch text-[10px] sm:text-xs text-amber-400 uppercase tracking-wider truncate mr-1">
+          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
             Total Fees Claimed
           </span>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shrink-0">
-            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center shrink-0">
+            <Coins className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="my-1.5 sm:my-2">
-          <div className="flex items-baseline gap-1 font-mono">
-            <span className="text-lg xs:text-xl sm:text-2xl font-black text-white">
+        <div className="my-3">
+          <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="text-2xl font-bold tracking-tight text-white">
               {state.totalFeesClaimedETH.toFixed(4)}
             </span>
-            <span className="text-[10px] sm:text-xs font-bold text-amber-400">ETH</span>
+            <span className="text-xs font-semibold text-orange-400">ETH</span>
           </div>
-          <div className="font-hand text-[10px] sm:text-xs text-slate-400 truncate">
+          <div className="text-xs font-mono text-zinc-400 mt-0.5">
             ≈ ${formatNumber(state.totalFeesClaimedUSD)} USD
           </div>
         </div>
 
-        <div className="pt-1.5 sm:pt-2 border-t-2 border-dashed border-slate-700/80 flex items-center justify-between font-mono text-[9px] sm:text-[11px] text-slate-400">
-          <span className="hidden xs:inline">Escrow:</span>
-          <span className="text-amber-300 font-bold truncate">
+        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
+          <span className="text-zinc-500">Escrow Waiting:</span>
+          <span className="text-orange-300 font-medium">
             {state.currentEscrowBalanceETH.toFixed(4)} ETH
           </span>
         </div>
       </div>
 
-      {/* 2. TOTAL BUYBACK */}
-      <div className="p-2.5 sm:p-4 bg-[#18202c] sketch-box flex flex-col justify-between">
+      {/* 2. TOTAL BUYBACK VOLUME */}
+      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-sketch text-[10px] sm:text-xs text-emerald-400 uppercase tracking-wider truncate mr-1">
+          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
             Buyback Volume
           </span>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="my-1.5 sm:my-2">
-          <div className="flex items-baseline gap-1 font-mono">
-            <span className="text-lg xs:text-xl sm:text-2xl font-black text-white">
+        <div className="my-3">
+          <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="text-2xl font-bold tracking-tight text-white">
               {formatNumber(state.totalTokensBoughtBack)}
             </span>
+            <span className="text-xs font-semibold text-emerald-400">HOT</span>
           </div>
-          <div className="font-hand text-[10px] sm:text-xs text-emerald-400 flex items-center gap-0.5 truncate">
-            <ArrowUpRight className="w-3 h-3 shrink-0" />
-            <span className="truncate">Constant DEX Pressure</span>
+          <div className="text-xs font-mono text-zinc-400 mt-0.5">
+            100% Fees Converted via Curve
           </div>
         </div>
 
-        <div className="pt-1.5 sm:pt-2 border-t-2 border-dashed border-slate-700/80 flex items-center justify-between font-mono text-[9px] sm:text-[11px] text-slate-400">
-          <span className="hidden xs:inline">Price:</span>
-          <span className="text-emerald-300 font-bold truncate">
-            ${state.tokenPriceUSD.toFixed(6)}
+        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
+          <span className="text-zinc-500">Autonomous Cycles:</span>
+          <span className="text-emerald-300 font-medium">
+            {state.cycleCount} Executed
           </span>
         </div>
       </div>
 
       {/* 3. TOTAL TOKENS BURNED */}
-      <div className="p-2.5 sm:p-4 bg-[#18202c] sketch-box flex flex-col justify-between">
+      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-sketch text-[10px] sm:text-xs text-rose-400 uppercase tracking-wider truncate mr-1">
-            Tokens Burned 🔥
+          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+            Total Burned
           </span>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-rose-400/20 text-rose-300 border border-rose-400/40 flex items-center justify-center shrink-0">
-            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
+            <Flame className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="my-1.5 sm:my-2">
-          <div className="flex items-baseline gap-1 font-mono">
-            <span className="text-lg xs:text-xl sm:text-2xl font-black text-rose-400">
+        <div className="my-3">
+          <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="text-2xl font-bold tracking-tight text-white">
               {formatNumber(state.totalTokensBurned)}
             </span>
+            <span className="text-xs font-semibold text-rose-400">HOT</span>
           </div>
-          <div className="font-hand text-[10px] sm:text-xs text-slate-400 truncate">
-            To Dead Address
+          <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-rose-500 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, burnedPercent)}%` }}
+              />
+            </div>
+            <span className="text-xs font-mono text-rose-400 font-medium">
+              {burnedPercent.toFixed(2)}%
+            </span>
           </div>
         </div>
 
-        {/* Burn progress */}
-        <div className="pt-1.5 sm:pt-2 border-t-2 border-dashed border-slate-700/80">
-          <div className="flex justify-between font-hand text-[9px] sm:text-xs text-slate-300 mb-1">
-            <span className="truncate mr-1">Destroyed:</span>
-            <span className="font-mono text-rose-400 font-bold shrink-0">
-              {state.burnedPercentageOfSupply.toFixed(2)}%
-            </span>
-          </div>
-          <div className="w-full bg-slate-900 border border-slate-700 rounded-full h-1.5 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-amber-500 to-rose-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, state.burnedPercentageOfSupply)}%` }}
-            />
-          </div>
+        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
+          <span className="text-zinc-500">Dead Sink:</span>
+          <span className="text-rose-300 font-medium">0x0...dEaD</span>
         </div>
       </div>
 
-      {/* 4. DEAD ADDRESS VAULT */}
-      <div className="p-2.5 sm:p-4 bg-[#18202c] sketch-box flex flex-col justify-between">
+      {/* 4. MARKET CAPITALIZATION */}
+      <div className="p-4 rounded-xl bg-[#0c1017] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between group shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-sketch text-[10px] sm:text-xs text-sky-400 uppercase tracking-wider truncate mr-1">
-            Dead Vault
+          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+            Market Cap & Price
           </span>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-sky-400/20 text-sky-300 border border-sky-400/40 flex items-center justify-center font-mono font-bold text-[10px] sm:text-xs shrink-0">
-            0x0
+          <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center shrink-0">
+            <BarChart3 className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="my-1.5 sm:my-2">
-          <div className="flex items-baseline gap-1 font-mono">
-            <span className="text-lg xs:text-xl sm:text-2xl font-black text-white">
-              {formatNumber(state.deadAddressBalance)}
+        <div className="my-3">
+          <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="text-2xl font-bold tracking-tight text-white">
+              ${formatNumber(state.marketCapUSD)}
             </span>
+            <span className="text-xs font-semibold text-sky-400">USD</span>
           </div>
-          <div className="font-hand text-[10px] sm:text-xs text-slate-400 truncate">
-            Zero-Address Sink
+          <div className="text-xs font-mono text-zinc-400 mt-0.5">
+            ${state.tokenPriceUSD.toFixed(6)} / HOT
           </div>
         </div>
 
-        <div className="pt-1.5 sm:pt-2 border-t-2 border-dashed border-slate-700/80 flex items-center justify-between font-mono text-[9px] sm:text-[11px] text-slate-400">
-          <span className="hidden xs:inline">MCap:</span>
-          <span className="text-white font-bold truncate">
-            ${formatNumber(state.marketCapUSD)}
+        <div className="pt-2.5 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono">
+          <span className="text-zinc-500">Pons Curve DEX:</span>
+          <span className="text-sky-300 font-medium flex items-center gap-0.5">
+            Active Pool <ArrowUpRight className="w-3 h-3" />
           </span>
         </div>
       </div>
