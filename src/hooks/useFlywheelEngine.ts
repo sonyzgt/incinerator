@@ -8,8 +8,8 @@ import { fetchOnChainEscrowBalance, fetchFullOnChainMetrics, fetchTokenCurve } f
 // Load from environment variables (.env) with strict fallback to official deployed contracts
 const rawToken = import.meta.env.VITE_TOKEN_ADDRESS;
 export const OFFICIAL_TOKEN_ADDRESS = rawToken || '';
-export const OFFICIAL_CURVE_ADDRESS = '0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60';
-export const OFFICIAL_CREATOR_ADDRESS = '0xC2Df69666d3f4c9C06a41C883be9909dD45c2123';
+export const OFFICIAL_CURVE_ADDRESS = import.meta.env.VITE_CURVE_ADDRESS || '';
+export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || '';
 export const OFFICIAL_RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';
 
 const ENV_CYCLE_INTERVAL = parseInt(import.meta.env.VITE_CYCLE_INTERVAL_SECONDS || '300', 10);
@@ -44,7 +44,8 @@ export const isConfiguredAddress = (addr?: string): boolean => {
 
 const getStoredConfig = (): MachineConfig => {
   try {
-    const saved = localStorage.getItem('hot_flywheel_config');
+    localStorage.removeItem('hot_flywheel_config');
+    const saved = localStorage.getItem('jevburn_flywheel_config');
     if (saved) {
       const parsed = JSON.parse(saved);
       // Clean up any stale or unconfigured cache
@@ -175,7 +176,7 @@ export function useFlywheelEngine() {
     setConfigState((prev) => {
       const resolved = typeof newConfig === 'function' ? newConfig(prev) : newConfig;
       try {
-        localStorage.setItem('hot_flywheel_config', JSON.stringify(resolved));
+        localStorage.setItem('jevburn_flywheel_config', JSON.stringify(resolved));
       } catch (e) {
         // ignore
       }
@@ -198,6 +199,7 @@ export function useFlywheelEngine() {
   const resetConfigToDefaults = useCallback(() => {
     try {
       localStorage.removeItem('hot_flywheel_config');
+      localStorage.removeItem('jevburn_flywheel_config');
     } catch (e) {
       // ignore
     }

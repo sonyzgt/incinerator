@@ -508,7 +508,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     value={formData.creatorAddress}
                     onChange={(e) => setFormData({ ...formData, creatorAddress: e.target.value })}
-                    placeholder="0xC2Df69666d3f4c9C06a41C883be9909dD45c2123"
+                    placeholder="0x..."
                     className="w-full px-3 py-2 bg-[#0a0f16] border border-slate-700 rounded-lg text-white font-mono text-xs focus:border-amber-400 focus:outline-none"
                   />
                 </div>

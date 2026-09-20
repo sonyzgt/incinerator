@@ -50,7 +50,7 @@ let currentConfig = {
   rpcUrl: process.env.RPC_URL || process.env.VITE_RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
   privateKey: process.env.CREATOR_PRIVATE_KEY || process.env.PRIVATE_KEY || "",
   tokenAddress: process.env.TOKEN_ADDRESS || process.env.VITE_TOKEN_ADDRESS || "",
-  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || "0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60",
+  curveAddress: process.env.CURVE_ADDRESS || process.env.VITE_CURVE_ADDRESS || "",
   claimThresholdETH: process.env.CLAIM_THRESHOLD_ETH || process.env.VITE_CLAIM_THRESHOLD_ETH || "0.015",
   pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || "10", 10),
   port: parseInt(process.env.PORT || "5000", 10)
