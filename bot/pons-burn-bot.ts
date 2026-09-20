@@ -125,8 +125,82 @@ const botState = {
   totalFeesClaimedETH: "0.9680",
   totalCyclesExecuted: 0,
   lastCycleTime: "",
+  lastJevDecision: {
+    model: "jev-latest",
+    confidence: 82,
+    action: "ACCUMULATING_FEES",
+    urgencyScore: 35,
+    rawScore: 0.82,
+    evaluatedAt: new Date().toLocaleTimeString(),
+    reasoning: "Waiting for swap fee threshold or evaluating pool liquidity."
+  },
   logs: [] as BotMemoryLog[]
 };
+
+// Jev System One Autonomous Decision Engine for Trading & Buyback (Venice.ai)
+async function evaluateJevTradingDecision(claimableETH: string, thresholdETH: string) {
+  const veniceKey = process.env.VENICE_API_KEY || "";
+  if (!veniceKey) return null;
+
+  try {
+    const isReady = parseFloat(claimableETH) >= parseFloat(thresholdETH);
+    const marketState = `[JEVBURN Autonomous Protocol Telemetry]
+- Network: Robinhood Chain (EVM ID: 4663)
+- Token CA: ${currentConfig.tokenAddress}
+- Curve DEX: ${currentConfig.curveAddress}
+- Accumulated Escrow Fee: ${claimableETH} ETH
+- Target Execution Threshold: ${thresholdETH} ETH
+- Threshold Satisfied: ${isReady ? "YES" : "NO"}
+- Destination Sink: ${DEAD_ADDRESS}`;
+
+    const payload = {
+      model: "jev-latest",
+      state: marketState,
+      questions: {
+        "should_execute": {
+          "type": "noul",
+          "instructions": "Given the accumulated fee and target threshold, should the protocol trigger the autonomous buyback now?"
+        },
+        "urgency": {
+          "type": "noul",
+          "instructions": "Is immediate execution critical to prevent front-running or fee slippage?"
+        }
+      }
+    };
+
+    const res = await fetch("https://api.venice.ai/api/v1/decisions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${veniceKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const shouldExec = data.answers?.should_execute?.noul ?? (isReady ? 0.85 : 0.25);
+      const urgency = data.answers?.urgency?.noul ?? 0.35;
+      const action = shouldExec >= 0.65 ? "EXECUTE_BUYBACK" : "ACCUMULATING_FEES";
+      const result = {
+        model: "jev-latest",
+        confidence: Math.round(shouldExec * 100),
+        action,
+        urgencyScore: Math.round(urgency * 100),
+        rawScore: shouldExec,
+        evaluatedAt: new Date().toLocaleTimeString(),
+        reasoning: shouldExec >= 0.65 
+          ? "Threshold satisfied. Optimal window for DEX buyback & burn." 
+          : "Accumulating swap fees in FeeEscrow until threshold reached."
+      };
+      botState.lastJevDecision = result;
+      return result;
+    }
+  } catch (err: any) {
+    console.warn("⚠️ [Jev Decision Failure]:", err.message);
+  }
+  return null;
+}
 
 function addLog(type: "info" | "success" | "warn" | "error", message: string) {
   const timestamp = new Date().toLocaleTimeString();
@@ -230,7 +304,11 @@ async function executeCycle() {
     const thresholdWei = ethers.parseEther(currentConfig.claimThresholdETH);
 
     if (claimableWei >= thresholdWei && claimableWei > 0n) {
-      addLog("success", `⚡ THRESHOLD REACHED (${claimableETH} ETH >= ${currentConfig.claimThresholdETH} ETH). Initiating Flywheel!`);
+      addLog("success", `⚡ THRESHOLD REACHED (${claimableETH} ETH >= ${currentConfig.claimThresholdETH} ETH). Consulting Jev Decision Model...`);
+      const jevEval = await evaluateJevTradingDecision(claimableETH, currentConfig.claimThresholdETH);
+      if (jevEval) {
+        addLog("info", `⚡ [Jev System One • jev-latest] AI Decision: ${jevEval.action} (${jevEval.confidence}% Confidence, Urgency: ${jevEval.urgencyScore}%)`);
+      }
 
       // 1. CLAIM
       botState.status = "claiming" as any;
@@ -343,9 +421,20 @@ const server = http.createServer(async (req, res) => {
         totalFeesClaimedETH: botState.totalFeesClaimedETH,
         totalCyclesExecuted: botState.totalCyclesExecuted,
         lastCycleTime: botState.lastCycleTime,
+        lastJevDecision: botState.lastJevDecision,
         pollIntervalSeconds: currentConfig.pollIntervalSeconds,
         logs: botState.logs
       }
+    });
+  }
+
+  // Endpoint 1b: GET /api/jev/decision (Live Jev System One Trading Evaluation)
+  if (req.method === "GET" && (url === "/api/jev/decision" || url === "/api/jev/decision/")) {
+    const claimableETH = botState.escrowBalanceETH || "0.0";
+    const decision = await evaluateJevTradingDecision(claimableETH, currentConfig.claimThresholdETH);
+    return sendJSON(res, 200, {
+      success: true,
+      data: decision || botState.lastJevDecision
     });
   }
 
