@@ -458,59 +458,34 @@ Jev Style: Direct, confident, mathematically precise, cybernetic. Give probabili
 
       let aiReply = "";
 
-      // 1. Try Venice Decisions API (jev-latest)
+      // 1. Call Venice AI Inference API (OpenAI-compatible)
       try {
-        const decisionsRes = await fetch(veniceDecisionsUrl, {
+        const veniceRes = await fetch(`${veniceBaseUrl}/chat/completions`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${veniceKey}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "jev-latest",
-            state: `User asked: "${userMessage}". Context: JEVBURN token on Robinhood Chain, CA 0xa6a44f24780b95d467d482de278a017fd6d7c2b3, 152M+ burned (15.2%), dead sink 0x000...dEaD.`,
-            questions: {
-              "analysis": { type: "text", instructions: "Answer directly with high confidence and precision as Jev System One model." }
-            }
+            model: veniceModel === "jev-latest" ? "llama-3.3-70b" : veniceModel,
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...history.slice(-6),
+              { role: "user", content: userMessage }
+            ],
+            max_tokens: 500,
+            temperature: 0.6
           })
         });
 
-        if (decisionsRes.ok) {
-          const decData = await decisionsRes.json();
-          if (decData.answers && decData.answers.analysis) {
-            aiReply = decData.answers.analysis;
+        if (veniceRes.ok) {
+          const veniceData = await veniceRes.json();
+          if (veniceData.choices && veniceData.choices[0]?.message?.content) {
+            aiReply = veniceData.choices[0].message.content;
           }
         }
-      } catch (e) {}
-
-      // 2. Try standard Venice Chat Completions if decisions API didn't return text
-      if (!aiReply) {
-        try {
-          const veniceRes = await fetch(`${veniceBaseUrl}/chat/completions`, {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${veniceKey}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: veniceModel === "jev-latest" ? "llama-3.3-70b" : veniceModel,
-              messages: [
-                { role: "system", content: systemPrompt },
-                ...history.slice(-6),
-                { role: "user", content: userMessage }
-              ],
-              max_tokens: 500,
-              temperature: 0.6
-            })
-          });
-
-          if (veniceRes.ok) {
-            const veniceData = await veniceRes.json();
-            if (veniceData.choices && veniceData.choices[0]?.message?.content) {
-              aiReply = veniceData.choices[0].message.content;
-            }
-          }
-        } catch (veniceErr: any) {}
+      } catch (veniceErr: any) {
+        console.warn("⚠️ [Venice API Warning]:", veniceErr.message);
       }
 
       // 3. Smart Jev Fallback (High-Confidence System One Intelligence)
