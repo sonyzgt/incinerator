@@ -36,6 +36,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
     confidence: number;
     action: string;
     urgencyScore: number;
+    readinessPercent?: number;
     evaluatedAt: string;
     reasoning: string;
   } | null>(null);
@@ -340,14 +341,14 @@ export const BurnPage: React.FC<BurnPageProps> = ({
               <div className="bg-[#14161f] border border-[#24252a] rounded-xl px-4 py-2.5">
                 <span className="text-[10px] text-zinc-500 uppercase block tracking-wider">AI Decision</span>
                 <span className={`text-sm font-bold ${jevDecision?.action === 'EXECUTE_BUYBACK' ? 'text-emerald-400' : 'text-orange-400'}`}>
-                  {jevDecision?.action || 'ACCUMULATING_FEES'}
+                  {jevDecision?.action || 'ANALYZING...'}
                 </span>
               </div>
 
               <div className="bg-[#14161f] border border-[#24252a] rounded-xl px-4 py-2.5">
                 <span className="text-[10px] text-zinc-500 uppercase block tracking-wider">Confidence</span>
                 <span className="text-sm font-bold text-white">
-                  {jevDecision?.confidence ?? 82}%
+                  {jevDecision ? `${jevDecision.confidence}%` : '...'}
                 </span>
               </div>
 

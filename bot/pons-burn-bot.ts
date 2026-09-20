@@ -127,12 +127,13 @@ const botState = {
   lastCycleTime: "",
   lastJevDecision: {
     model: "jev-latest",
-    confidence: 82,
+    confidence: 96,
+    readinessPercent: 13,
     action: "ACCUMULATING_FEES",
-    urgencyScore: 35,
-    rawScore: 0.82,
+    urgencyScore: 25,
+    rawScore: 0.04,
     evaluatedAt: new Date().toLocaleTimeString(),
-    reasoning: "Waiting for swap fee threshold or evaluating pool liquidity."
+    reasoning: "Accumulating swap fees in FeeEscrow until threshold reached."
   },
   logs: [] as BotMemoryLog[]
 };
@@ -179,12 +180,17 @@ async function evaluateJevTradingDecision(claimableETH: string, thresholdETH: st
 
     if (res.ok) {
       const data = await res.json();
-      const shouldExec = data.answers?.should_execute?.noul ?? (isReady ? 0.85 : 0.25);
-      const urgency = data.answers?.urgency?.noul ?? 0.35;
+      const shouldExec = data.answers?.should_execute?.noul ?? (isReady ? 0.85 : 0.04);
+      const urgency = data.answers?.urgency?.noul ?? 0.25;
       const action = shouldExec >= 0.65 ? "EXECUTE_BUYBACK" : "ACCUMULATING_FEES";
+      const confidence = action === "EXECUTE_BUYBACK" 
+        ? Math.round(shouldExec * 100) 
+        : Math.round(Math.max(0.85, 1 - shouldExec) * 100);
+
       const result = {
         model: "jev-latest",
-        confidence: Math.round(shouldExec * 100),
+        confidence,
+        readinessPercent: Math.round(shouldExec * 100),
         action,
         urgencyScore: Math.round(urgency * 100),
         rawScore: shouldExec,
