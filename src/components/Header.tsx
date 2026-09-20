@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
-import { Copy, Check, ExternalLink, Cpu, Terminal, Shield, Activity, Radio } from 'lucide-react';
+import { Copy, Check, Volume2, VolumeX, Shield, Terminal, ArrowUpRight } from 'lucide-react';
 import { MachineConfig } from '../types';
 
 interface HeaderProps {
   config: MachineConfig;
   tokenPriceUSD: number;
+  soundEnabled?: boolean;
+  onToggleSound?: () => void;
+  onNavigateDocs?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ config, tokenPriceUSD }) => {
+export const Header: React.FC<HeaderProps> = ({
+  config,
+  tokenPriceUSD,
+  soundEnabled,
+  onToggleSound,
+  onNavigateDocs,
+}) => {
   const [copied, setCopied] = useState(false);
 
   const copyCA = () => {
@@ -25,109 +34,99 @@ export const Header: React.FC<HeaderProps> = ({ config, tokenPriceUSD }) => {
   );
 
   return (
-    <header className="w-full bg-[#05070A]/95 border-b border-cyan-500/20 sticky top-0 z-50 backdrop-blur-md">
-      {/* Top Telemetry Micro-Bar */}
-      <div className="border-b border-zinc-800/60 px-4 sm:px-8 py-1 flex items-center justify-between text-[10px] font-mono text-zinc-400">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-cyan-400">
-            <Radio className="w-3 h-3 animate-pulse" />
-            <span>RH-NET.4663 // PROTOCOL: PONS_V2</span>
-          </span>
-          <span className="hidden md:inline text-zinc-600">|</span>
-          <span className="hidden md:inline text-zinc-400">CORE DAEMON: ACTIVE [24/7 AUTONOMOUS]</span>
-        </div>
+    <header className="w-full border-b border-white/[0.06] sticky top-0 z-50 backdrop-blur-xl bg-[#05070a]/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Left: Brand / Identity */}
         <div className="flex items-center gap-3">
-          <span className="text-zinc-500">RPC LATENCY: <span className="text-emerald-400 font-semibold">12ms</span></span>
-          <span className="text-zinc-600">|</span>
-          <span className="text-emerald-400 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-            SYS.ONLINE
-          </span>
-        </div>
-      </div>
-
-      {/* Main Control Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Futuristic Brand Identifier */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded bg-[#0A0E15] border border-cyan-500/40 p-1 flex items-center justify-center relative shadow-[0_0_12px_rgba(0,240,255,0.25)] shrink-0 group">
-            <Cpu className="w-5 h-5 text-cyan-400 group-hover:scale-105 transition-transform" />
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-orbitron font-black text-xl tracking-wider text-white text-glow-cyan">
-                HOT
-              </span>
-              <span className="text-[9px] font-oxanium font-bold px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 tracking-widest uppercase">
-                AUTONOMOUS ENGINE
-              </span>
+          <a href="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 rounded-full bg-white/[0.04] border border-white/[0.12] flex items-center justify-center group-hover:border-cyan-400/60 transition-colors">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
             </div>
-            <div className="text-[10px] font-mono text-zinc-400 tracking-wider">
-              PROTOCOL STATE: <span className="text-emerald-400 font-semibold">● ACTIVE</span>
-            </div>
-          </div>
+            <span className="font-orbitron font-bold text-base tracking-wider text-white group-hover:text-cyan-300 transition-colors">
+              HOT
+            </span>
+            <span className="text-zinc-600 font-mono text-xs select-none">//</span>
+            <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase hidden sm:inline">
+              AUTONOMOUS PROTOCOL
+            </span>
+          </a>
         </div>
 
-        {/* System Control Instruments */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Token Price Ticker */}
-          <div className="px-3 py-1.5 rounded bg-[#080B10] border border-zinc-800 text-xs font-mono text-zinc-300 hidden md:flex items-center gap-2">
-            <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">$HOT PRICE:</span>
-            <span className="text-cyan-300 font-bold font-orbitron text-xs">${tokenPriceUSD.toFixed(6)}</span>
-          </div>
+        {/* Center: Minimal Navigation Links (Desktop) */}
+        <nav className="hidden md:flex items-center gap-6 text-xs font-mono text-zinc-400">
+          <a href="#hero" className="hover:text-white transition-colors">
+            OVERVIEW
+          </a>
+          <a href="#pipeline" className="hover:text-white transition-colors">
+            PROTOCOL
+          </a>
+          <a href="#metrics" className="hover:text-white transition-colors">
+            METRICS
+          </a>
+          <a href="#activity" className="hover:text-white transition-colors">
+            ACTIVITY
+          </a>
+          <button
+            onClick={onNavigateDocs}
+            className="hover:text-white transition-colors cursor-pointer text-xs font-mono"
+          >
+            DOCS
+          </button>
+        </nav>
 
-          {/* Network Indicator */}
-          <div className="px-3 py-1.5 rounded bg-[#080B10] border border-zinc-800 text-xs font-mono text-zinc-300 hidden sm:flex items-center gap-2">
-            <span className="text-[10px] font-oxanium text-zinc-400 uppercase tracking-wider">CHAIN:</span>
-            <span className="text-white font-medium flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Robinhood
+        {/* Right: Key Signals & Action Items */}
+        <div className="flex items-center gap-3 sm:gap-4 text-xs font-mono">
+          {/* Token Price (Minimal) */}
+          <div className="hidden lg:flex items-center gap-1.5 text-zinc-400">
+            <span className="text-zinc-500 text-[10px]">PRICE</span>
+            <span className="font-orbitron font-bold text-zinc-200">
+              ${tokenPriceUSD > 0 ? tokenPriceUSD.toFixed(6) : '0.000085'}
             </span>
           </div>
 
-          {/* Contract Address Module */}
-          {isConfigured ? (
+          {/* Network Live Indicator */}
+          <div className="hidden sm:flex items-center gap-1.5 text-zinc-400 border-l border-white/[0.08] pl-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] text-zinc-300">ROBINHOOD</span>
+          </div>
+
+          {/* CA Copy Button (Clean Minimal) */}
+          {isConfigured && (
             <button
               onClick={copyCA}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#080B10] hover:bg-[#0E131C] border border-cyan-500/30 hover:border-cyan-400/60 text-xs font-mono text-zinc-300 transition-all cursor-pointer group"
-              title="Click to copy official contract address"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-zinc-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] transition-all cursor-pointer text-xs"
+              title="Copy official token address"
             >
-              <span className="text-[10px] font-oxanium text-cyan-400 uppercase tracking-wider">CA:</span>
-              <span className="font-mono text-white">
-                {config.tokenAddress.substring(0, 6)}...{config.tokenAddress.substring(config.tokenAddress.length - 4)}
+              <span className="text-zinc-400 text-[10px]">CA</span>
+              <span className="font-mono text-[11px]">
+                {config.tokenAddress.substring(0, 4)}...{config.tokenAddress.substring(config.tokenAddress.length - 4)}
               </span>
               {copied ? (
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <Check className="w-3 h-3 text-emerald-400" />
               ) : (
-                <Copy className="w-3.5 h-3.5 text-cyan-400/70 group-hover:text-cyan-300 transition-colors" />
+                <Copy className="w-3 h-3 text-zinc-400 hover:text-cyan-300 transition-colors" />
               )}
             </button>
-          ) : (
-            <div className="px-3 py-1.5 rounded bg-[#080B10] border border-zinc-800 text-xs font-mono text-zinc-500">
-              <span>CA: UNCONFIGURED</span>
-            </div>
           )}
 
-          {/* System Docs Link */}
-          <a
-            href="/docs"
-            className="p-2 sm:px-3 sm:py-1.5 rounded bg-[#080B10] hover:bg-[#0E131C] border border-zinc-800 hover:border-zinc-700 text-xs font-oxanium font-semibold text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5"
-            title="Protocol Documentation"
-          >
-            <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">DOCS</span>
-          </a>
+          {/* Sound Toggle (if provided) */}
+          {onToggleSound && (
+            <button
+              onClick={onToggleSound}
+              className="p-1.5 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+              title={soundEnabled ? 'Mute protocol audio' : 'Enable protocol audio'}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4 text-zinc-600" />}
+            </button>
+          )}
 
-          {/* Admin /memex Link */}
+          {/* Admin Link (/memex) */}
           <a
             href="/memex"
-            className="p-2 sm:px-3 sm:py-1.5 rounded bg-[#080B10] hover:bg-[#0E131C] border border-zinc-800 hover:border-zinc-700 text-xs font-oxanium font-semibold text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5"
-            title="System Command & Control"
+            className="text-zinc-400 hover:text-white transition-colors p-1"
+            title="System Admin & Settings"
           >
-            <Shield className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="hidden sm:inline">ADMIN</span>
+            <Shield className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>
