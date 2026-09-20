@@ -17,7 +17,7 @@ async function runTestCycle() {
 
   const ESCROW_ADDR = "0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e";
   const CURVE_ADDR  = "0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60";
-  const TOKEN_ADDR  = "0x5a2fadc9d76ebe2fc09cb22126a0c7b4ff664ed9";
+  const TOKEN_ADDR  = process.env.TOKEN_ADDRESS || "";
   const DEAD_ADDR   = "0x000000000000000000000000000000000000dEaD";
 
   const escrow = new ethers.Contract(ESCROW_ADDR, [

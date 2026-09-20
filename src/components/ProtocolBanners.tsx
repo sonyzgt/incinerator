@@ -120,7 +120,7 @@ export const HeroHighlightBanner: React.FC<HeroHighlightBannerProps> = ({
           >
             <span className="text-zinc-500 text-[10px]">CA:</span>
             <span className="font-bold text-white">
-              {tokenAddress ? `${tokenAddress.substring(0, 6)}...${tokenAddress.substring(tokenAddress.length - 4)}` : '0x5a2f...4ed9'}
+              {tokenAddress ? `${tokenAddress.substring(0, 6)}...${tokenAddress.substring(tokenAddress.length - 4)}` : '—'}
             </span>
             {copied ? (
               <Check className="w-3.5 h-3.5 text-emerald-400" />

@@ -170,18 +170,20 @@ export function App() {
             </svg>
           </a>
 
-          {/* CA Copy Button */}
-          <button
-            onClick={copyCA}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-[#a6a39d] hover:text-[#f5f3ef] transition-colors cursor-pointer border border-[#24252a] rounded-lg bg-[#111217]"
-            title="Click to copy CA"
-          >
-            <span className="text-[10px] text-[#555258]">CA</span>
-            <span className="font-mono text-[11px]">
-              {config.tokenAddress ? `${config.tokenAddress.slice(0, 4)}…${config.tokenAddress.slice(-4)}` : '0x5a2f...4ed9'}
-            </span>
-            {copiedCA ? <Check className="w-3 h-3 text-[#ff5722]" /> : <Copy className="w-3 h-3" />}
-          </button>
+          {/* CA Copy Button (only if configured) */}
+          {config.tokenAddress ? (
+            <button
+              onClick={copyCA}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-[#a6a39d] hover:text-[#f5f3ef] transition-colors cursor-pointer border border-[#24252a] rounded-lg bg-[#111217]"
+              title="Click to copy CA"
+            >
+              <span className="text-[10px] text-[#555258]">CA</span>
+              <span className="font-mono text-[11px]">
+                {`${config.tokenAddress.slice(0, 4)}…${config.tokenAddress.slice(-4)}`}
+              </span>
+              {copiedCA ? <Check className="w-3 h-3 text-[#ff5722]" /> : <Copy className="w-3 h-3" />}
+            </button>
+          ) : null}
 
           {/* Admin Menu */}
           <a
@@ -663,12 +665,14 @@ export function App() {
           >
             Twitter / X
           </a>
-          <button
-            onClick={copyCA}
-            className="hover:text-white transition-colors cursor-pointer font-mono"
-          >
-            CA {config.tokenAddress ? `${config.tokenAddress.slice(0, 6)}…${config.tokenAddress.slice(-4)}` : '0x5a2f...4ed9'}
-          </button>
+          {config.tokenAddress ? (
+            <button
+              onClick={copyCA}
+              className="hover:text-white transition-colors cursor-pointer font-mono"
+            >
+              CA {`${config.tokenAddress.slice(0, 6)}…${config.tokenAddress.slice(-4)}`}
+            </button>
+          ) : null}
         </div>
       </footer>
     </div>

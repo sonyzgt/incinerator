@@ -7,14 +7,14 @@ import { fetchOnChainEscrowBalance, fetchFullOnChainMetrics, fetchTokenCurve } f
 
 // Load from environment variables (.env) with strict fallback to official deployed contracts
 const rawToken = import.meta.env.VITE_TOKEN_ADDRESS;
-export const OFFICIAL_TOKEN_ADDRESS = '0x5a2fadc9d76ebe2fc09cb22126a0c7b4ff664ed9';
+export const OFFICIAL_TOKEN_ADDRESS = rawToken || '';
 export const OFFICIAL_CURVE_ADDRESS = '0xCe9FaED939AE11A0d5912129eb5D7DD75d238D60';
 export const OFFICIAL_CREATOR_ADDRESS = '0xC2Df69666d3f4c9C06a41C883be9909dD45c2123';
 export const OFFICIAL_RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';
 
 const ENV_CYCLE_INTERVAL = parseInt(import.meta.env.VITE_CYCLE_INTERVAL_SECONDS || '300', 10);
-const ENV_TOKEN_NAME = import.meta.env.VITE_TOKEN_NAME || 'HOT';
-const ENV_TOKEN_SYMBOL = import.meta.env.VITE_TOKEN_SYMBOL || 'HOT';
+const ENV_TOKEN_NAME = import.meta.env.VITE_TOKEN_NAME || 'JEVBURN';
+const ENV_TOKEN_SYMBOL = import.meta.env.VITE_TOKEN_SYMBOL || 'JEV';
 const ENV_CLAIM_THRESHOLD = parseFloat(import.meta.env.VITE_CLAIM_THRESHOLD_ETH || '0.015');
 
 export const INITIAL_CONFIG: MachineConfig = {
