@@ -42,9 +42,6 @@ try {
 // File konfigurasi persisten
 const CONFIG_FILE = path.resolve(process.cwd(), "bot-config.json");
 
-// Admin password untuk otorisasi API dari /memex
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "SonySecure_" + Math.random().toString(36).substring(2, 10);
-
 export const OFFICIAL_JEVBURN_TOKEN = "0xa6a44f24780b95d467d482de278a017fd6d7c2b3";
 export const OFFICIAL_JEVBURN_CURVE = "0x77cc005727f671058d9EC29F7D5e470bd99727F6";
 
@@ -449,92 +446,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  const readBody = (): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk;
-        if (body.length > 1e6) req.destroy();
-      });
-      req.on("end", () => {
-        try {
-          resolve(body ? JSON.parse(body) : {});
-        } catch (e) {
-          reject(e);
-        }
-      });
-      req.on("error", reject);
-    });
-  };
-
-  // Endpoint 2: POST /api/config
-  if (req.method === "POST" && (url === "/api/config" || url === "/api/config/")) {
-    try {
-      const body = await readBody();
-      const secret = body.password || req.headers["x-admin-secret"];
-
-      if (secret !== ADMIN_SECRET) {
-        return sendJSON(res, 401, { success: false, error: "Incorrect Admin password!" });
-      }
-
-      const updates: any = {};
-      // Security: Token Address & Curve Address are permanently locked to $JEVBURN and cannot be modified remotely
-      if (body.claimThresholdETH !== undefined) {
-        const parsedThreshold = parseFloat(body.claimThresholdETH);
-        if (!isNaN(parsedThreshold) && parsedThreshold >= 0.005) {
-          updates.claimThresholdETH = String(parsedThreshold);
-        }
-      }
-      if (body.pollIntervalSeconds !== undefined) {
-        const parsedSec = parseInt(body.pollIntervalSeconds, 10);
-        if (!isNaN(parsedSec) && parsedSec >= 5) {
-          updates.pollIntervalSeconds = parsedSec;
-        }
-      }
-
-      saveConfigToFile(updates);
-
-      addLog("success", `[MEMEX SYNC] Parameters updated! Threshold: ${currentConfig.claimThresholdETH} ETH, Poll: ${currentConfig.pollIntervalSeconds}s`);
-
-      setTimeout(() => {
-        executeCycle().catch(console.error);
-      }, 500);
-
-      return sendJSON(res, 200, {
-        success: true,
-        message: "Bot parameters updated! (Token & Curve remain securely locked to $JEVBURN)",
-        data: {
-          tokenAddress: currentConfig.tokenAddress,
-          curveAddress: currentConfig.curveAddress,
-          claimThresholdETH: currentConfig.claimThresholdETH,
-          pollIntervalSeconds: currentConfig.pollIntervalSeconds,
-          status: "active"
-        }
-      });
-    } catch (e: any) {
-      return sendJSON(res, 400, { success: false, error: e.message || "Invalid JSON payload" });
-    }
-  }
-
-  // Endpoint 3: POST /api/trigger
-  if (req.method === "POST" && (url === "/api/trigger" || url === "/api/trigger/")) {
-    try {
-      const body = await readBody();
-      const secret = body.password || req.headers["x-admin-secret"];
-
-      if (secret !== ADMIN_SECRET) {
-        return sendJSON(res, 401, { success: false, error: "Incorrect Admin password!" });
-      }
-
-      addLog("info", "[MANUAL] Cycle manually triggered from /memex panel.");
-      executeCycle().catch(console.error);
-
-      return sendJSON(res, 200, { success: true, message: "Manual cycle is executing!" });
-    } catch (e: any) {
-      return sendJSON(res, 400, { success: false, error: e.message });
-    }
-  }
-
+  // Endpoint read-only selesai. Tolak semua POST request yang mencoba mengubah konfigurasi
   return sendJSON(res, 404, { success: false, error: "Not Found" });
 });
 
