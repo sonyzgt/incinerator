@@ -149,9 +149,35 @@
 
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
-  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #00F0FF;
 }
+
+/* Banner Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Shimmer Light Sweep for Banners */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 3.5s infinite;
+}
+

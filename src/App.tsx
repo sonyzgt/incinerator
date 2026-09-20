@@ -16,6 +16,12 @@ import {
   Zap,
   CheckCircle2,
 } from 'lucide-react';
+import {
+  TopBroadcastBanner,
+  HeroHighlightBanner,
+  DeflationaryMilestoneBanner,
+  CommunityEcosystemBanner,
+} from './components/ProtocolBanners';
 
 export function App() {
   const {
@@ -124,6 +130,13 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-[#030407] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500/20 selection:text-cyan-200">
+      {/* Top Protocol Broadcast Marquee Banner */}
+      <TopBroadcastBanner
+        totalBurnedFormatted={formatNumber(state.totalTokensBurned)}
+        burnedPercent={burnedPercent}
+        totalFeesClaimedETH={state.totalFeesClaimedETH}
+      />
+
       {/* Minimal Header */}
       <Header
         config={config}
@@ -134,8 +147,13 @@ export function App() {
       />
 
       {/* Main Ultra-Minimal Experience */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-20 sm:space-y-24">
-        
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-16 sm:space-y-20">
+        {/* Futuristic Protocol Spotlight Banner */}
+        <HeroHighlightBanner
+          tokenAddress={config.tokenAddress}
+          curveAddress={config.curveAddress}
+        />
+
         {/* ========================================================================= */}
         {/* 1. SINGLE CENTRAL HERO (AUTONOMOUS PROTOCOL FOCUS - NO CARDS / NO WHEELS) */}
         {/* ========================================================================= */}
@@ -290,6 +308,13 @@ export function App() {
             </div>
           </div>
         </section>
+
+        {/* Futuristic Deflationary Milestone Showcase Banner */}
+        <DeflationaryMilestoneBanner
+          totalBurnedFormatted={formatNumber(state.totalTokensBurned)}
+          burnedPercent={burnedPercent}
+          deadAddress={config.deadAddress || PONS_V2_CONFIG.contracts.deadAddress}
+        />
 
         {/* ========================================================================= */}
         {/* 3. IMPORTANT METRICS ROW (CLEAN TYPOGRAPHY ROW, SUBTLE DIVIDERS, NO CARDS) */}
@@ -554,6 +579,11 @@ export function App() {
             </div>
           )}
         </section>
+
+        {/* Futuristic Community & Ecosystem Verification Banner */}
+        <CommunityEcosystemBanner
+          tokenAddress={config.tokenAddress || PONS_V2_CONFIG.contracts.token}
+        />
 
       </main>
 
