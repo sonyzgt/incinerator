@@ -89,6 +89,21 @@ function saveConfigToFile(newCfg: Partial<typeof currentConfig>) {
 // Kontrak Resmi Pons v2 (docs.ponsfamily.com/v2)
 const PONS_FEE_ESCROW = "0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e";
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD";
+const UNISWAP_V4_UNIVERSAL_ROUTER = "0x8876789976dEcBfCbBbe364623C63652db8C0904";
+
+// Template Uniswap v4 Universal Router swap untuk $JEVBURN (Commands: 0x10, Actions: 0x060c0f)
+const V4_SWAP_TEMPLATE = "0x000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000003060c0f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a6a44f24780b95d467d482de278a017fd6d7c2b3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c8000000000000000000000000e5e702641ea86f4ae6cc3cdaed2b886f976be044000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000038d7ea4c68000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000a6a44f24780b95d467d482de278a017fd6d7c2b30000000000000000000000000000000000000000000000000000000000000001";
+
+function buildUniswapV4Buy(buyAmountWei: bigint, deadlineSeconds = 1800) {
+  const routerInterface = new ethers.Interface([
+    "function execute(bytes commands, bytes[] inputs, uint256 deadline) external payable"
+  ]);
+  const oldHex = ethers.toBeHex(ethers.parseEther("0.001"), 32).slice(2);
+  const newHex = ethers.toBeHex(buyAmountWei, 32).slice(2);
+  const replacedInput0 = "0x" + V4_SWAP_TEMPLATE.slice(2).replaceAll(oldHex, newHex);
+  const deadline = Math.floor(Date.now() / 1000) + deadlineSeconds;
+  return routerInterface.encodeFunctionData("execute", ["0x10", [replacedInput0], deadline]);
+}
 
 // ABIs
 const ESCROW_ABI = [
@@ -330,23 +345,35 @@ async function executeCycle() {
       botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.0") + claimedVal).toFixed(4);
       botState.escrowBalanceETH = "0.0";
 
-      // 2. BUYBACK ON CURVE
+      // 2. BUYBACK (Curve DEX atau Uniswap v4 Universal Router jika sudah lulus migrasi)
       botState.status = "buyback" as any;
-      addLog("info", `[2/3] Executing Buyback on Curve DEX (${claimableETH} ETH)...`);
       const isGraduated = await curve.graduated().catch(() => false);
 
+      const walletBal = await provider.getBalance(wallet.address);
+      const gasBuffer = ethers.parseEther("0.0008");
+      let buyAmountWei = claimableWei;
+
+      // Pastikan sisa saldo cukup untuk gas
+      if (walletBal < buyAmountWei + gasBuffer && walletBal > gasBuffer) {
+        buyAmountWei = walletBal - gasBuffer;
+      }
+
       if (isGraduated) {
-        addLog("warn", "Token has graduated to Uniswap v4 pool.");
+        addLog("info", `[2/3] Token has graduated! Executing Buyback on Uniswap v4 Router (${ethers.formatEther(buyAmountWei)} ETH)...`);
+        const buyData = buildUniswapV4Buy(buyAmountWei);
+        const buyNonce = await provider.getTransactionCount(wallet.address, "latest");
+        const buyTx = await wallet.sendTransaction({
+          to: UNISWAP_V4_UNIVERSAL_ROUTER,
+          value: buyAmountWei,
+          data: buyData,
+          gasLimit: 400000n,
+          nonce: buyNonce
+        });
+        addLog("info", `Uniswap v4 Buyback Tx broadcasted: ${buyTx.hash}`);
+        await buyTx.wait();
+        addLog("success", `Buyback on Uniswap v4 succeeded (${ethers.formatEther(buyAmountWei)} ETH)!`);
       } else {
-        const walletBal = await provider.getBalance(wallet.address);
-        const gasBuffer = ethers.parseEther("0.0008");
-        let buyAmountWei = claimableWei;
-
-        // Ensure sufficient gas buffer remains in wallet
-        if (walletBal < buyAmountWei + gasBuffer && walletBal > gasBuffer) {
-          buyAmountWei = walletBal - gasBuffer;
-        }
-
+        addLog("info", `[2/3] Executing Buyback on Curve DEX (${ethers.formatEther(buyAmountWei)} ETH)...`);
         const buyNonce = await provider.getTransactionCount(wallet.address, "latest");
         const buyTx = await curve.buy(buyAmountWei, 0n, wallet.address, {
           value: buyAmountWei,
