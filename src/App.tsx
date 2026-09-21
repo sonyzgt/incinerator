@@ -83,9 +83,9 @@ export function App() {
   const escrowProgressPercent = Math.min(100, Math.max(0, (state.currentEscrowBalanceETH / targetThreshold) * 100));
 
   return (
-    <div className="min-h-screen bg-[#090a0d] text-[#f5f3ef] font-satoshi selection:bg-[#ff5722] selection:text-[#090a0d] flex flex-col">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#090a0d] text-[#f5f3ef] font-satoshi selection:bg-[#ff5722] selection:text-[#090a0d] flex flex-col justify-between">
       {/* Navigation Header */}
-      <header className="h-16 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-[#222329] bg-[#090a0d]/90 sticky top-0 z-40 backdrop-blur-md">
+      <header className="h-14 sm:h-16 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-[#222329] bg-[#090a0d]/90 sticky top-0 z-40 backdrop-blur-md shrink-0">
         {/* Brand: INCINERATOR */}
         <div className="flex items-center gap-3">
           <a href="/" className="inline-flex items-center gap-2.5 text-base tracking-tight no-underline text-[#f5f3ef] group">
@@ -142,9 +142,9 @@ export function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        {/* Full-Screen Futuristic Hero Section with Liquid Effect Animation + banner background */}
-        <section className="flex-1 relative flex items-center justify-center overflow-hidden py-10 sm:py-16 px-4 sm:px-8 md:px-12">
+      <main className="flex-1 flex flex-col justify-center min-h-0">
+        {/* Full-Screen Futuristic Hero Section with Liquid Effect Animation */}
+        <section className="flex-1 relative flex items-center justify-center overflow-hidden py-3 sm:py-6 px-4 sm:px-8 md:px-12">
           {/* Interactive Liquid Effect Animation (from 21st.dev) */}
           <LiquidEffectAnimation
             className="absolute inset-0 z-0 pointer-events-auto opacity-45 mix-blend-screen"
@@ -162,30 +162,30 @@ export function App() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/25 to-[#090a0d]/85" />
           </div>
 
-          <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center relative z-10 my-auto">
+          <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10 my-auto">
             
             {/* Left Column: Brand, Actions, & Live Telemetry HUD */}
-            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 sm:space-y-7 z-20">
+            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 sm:space-y-5 z-20">
               {/* Main Brand Title & Description */}
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-2.5 sm:space-y-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff5722]/10 border border-[#ff5722]/30 text-[#ff5722] text-xs font-mono font-medium backdrop-blur-sm">
                   <Flame className="w-3.5 h-3.5" />
                   <span>AUTONOMOUS PROTOCOL BOT</span>
                 </div>
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white m-0 drop-shadow-[0_0_35px_rgba(255,87,34,0.25)]">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white m-0 drop-shadow-[0_0_35px_rgba(255,87,34,0.25)]">
                   INCINERATOR
                 </h1>
-                <p className="text-sm sm:text-base md:text-lg text-[#b5b2ab] max-w-xl leading-relaxed font-normal">
+                <p className="text-xs sm:text-sm md:text-base text-[#b5b2ab] max-w-lg leading-relaxed font-normal">
                   The perpetual autonomous buyback & incinerator on Robinhood Chain.
                   100% of trading fees are programmatically routed into DEX buybacks and sent to the irreversible dead sink.
                 </p>
               </div>
 
               {/* Primary Action Button */}
-              <div className="pt-1">
+              <div className="pt-0.5">
                 <button
                   onClick={navigateToBurn}
-                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#ff5722] to-[#ff7a00] hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-[0_0_30px_rgba(255,87,34,0.35)] hover:shadow-[0_0_40px_rgba(255,87,34,0.55)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                  className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff5722] to-[#ff7a00] hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-[0_0_25px_rgba(255,87,34,0.3)] hover:shadow-[0_0_35px_rgba(255,87,34,0.5)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Flame className="w-4 h-4 fill-white" />
                   <span>View Burns Ledger (/burn)</span>
@@ -194,8 +194,8 @@ export function App() {
               </div>
 
               {/* Sleek Minimalist Live Telemetry HUD */}
-              <div className="w-full max-w-xl rounded-2xl bg-[#0e1015]/90 border border-white/[0.08] backdrop-blur-xl p-5 sm:p-6 shadow-2xl text-left">
-                <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-3 mb-4">
+              <div className="w-full max-w-xl rounded-2xl bg-[#0e1015]/90 border border-white/[0.08] backdrop-blur-xl p-4 sm:p-5 shadow-2xl text-left">
+                <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-2.5 mb-3">
                   <span className="text-[#a6a39d] flex items-center gap-2">
                     <Cpu className="w-3.5 h-3.5 text-[#ff5722]" />
                     AUTONOMOUS INCINERATOR ENGINE
@@ -206,14 +206,14 @@ export function App() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                   {/* Escrow Pool Metric */}
                   <div>
                     <div className="flex items-center justify-between text-[11px] font-mono text-[#a6a39d] uppercase">
                       <span>Fee Escrow Pool</span>
                       <span className="text-[#ff5722] font-bold">{escrowProgressPercent.toFixed(1)}%</span>
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold font-mono text-white mt-1">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-white mt-1">
                       {state.currentEscrowBalanceETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">/ {targetThreshold.toFixed(4)} ETH</span>
                     </div>
                     <div className="w-full h-1.5 bg-[#1b1c24] rounded-full overflow-hidden mt-2">
@@ -222,23 +222,23 @@ export function App() {
                         style={{ width: `${Math.max(3, escrowProgressPercent)}%` }}
                       />
                     </div>
-                    <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
+                    <div className="text-[10px] text-[#65636c] font-mono mt-1">
                       {state.isWheelSpinning ? 'Executing swap on Uniswap v4...' : `Auto-sweep at ${targetThreshold.toFixed(4)} ETH threshold`}
                     </div>
                   </div>
 
                   {/* Supply Incinerated Metric */}
-                  <div className="sm:border-l sm:border-white/[0.06] sm:pl-6">
+                  <div className="sm:border-l sm:border-white/[0.06] sm:pl-5">
                     <div className="text-[11px] font-mono text-[#a6a39d] uppercase">
                       Supply Incinerated
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold font-mono text-[#ff5722] mt-1">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-[#ff5722] mt-1">
                       {formatCompact(state.totalTokensBurned)} <span className="text-xs font-normal text-white">TOKENS</span>
                     </div>
-                    <div className="text-xs font-mono text-emerald-400 mt-1">
+                    <div className="text-xs font-mono text-emerald-400 mt-0.5">
                       {burnedPercent.toFixed(2)}% of total supply removed
                     </div>
-                    <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
+                    <div className="text-[10px] text-[#65636c] font-mono mt-1">
                       Irreversible sink: 0x0...dEaD
                     </div>
                   </div>
@@ -247,13 +247,13 @@ export function App() {
             </div>
 
             {/* Right Column: 3D Interactive Robot from Spline */}
-            <div className="lg:col-span-6 w-full h-[520px] sm:h-[600px] lg:h-[700px] xl:h-[760px] relative flex items-end justify-center pointer-events-auto translate-y-6 sm:translate-y-10 lg:translate-y-16">
+            <div className="lg:col-span-6 w-full h-[360px] sm:h-[420px] lg:h-[500px] xl:h-[540px] relative flex items-center justify-center pointer-events-auto">
               <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
               />
-              {/* Seamless atmospheric fade to completely eliminate bottom cut-off */}
-              <div className="absolute -bottom-1 inset-x-0 h-24 sm:h-36 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/80 to-transparent pointer-events-none z-10" />
+              {/* Seamless atmospheric bottom fade */}
+              <div className="absolute -bottom-1 inset-x-0 h-16 sm:h-20 bg-gradient-to-t from-[#090a0d] to-transparent pointer-events-none z-10" />
             </div>
 
           </div>
@@ -261,7 +261,7 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="px-4 sm:px-8 md:px-12 py-6 border-t border-[#222329] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#a6a39d]">
+      <footer className="px-4 sm:px-8 md:px-12 py-3 sm:py-3.5 border-t border-[#222329] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#a6a39d] shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-white font-bold tracking-tight">INCINERATOR</span>
           <span>//</span>
