@@ -144,7 +144,7 @@ export function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col justify-center min-h-0">
         {/* Full-Screen Futuristic Hero Section with Liquid Effect Animation */}
-        <section className="flex-1 relative flex items-center justify-center overflow-hidden py-3 sm:py-6 px-4 sm:px-8 md:px-12">
+        <section className="flex-1 relative flex items-center lg:items-end justify-center overflow-hidden pt-3 sm:pt-4 pb-0 px-4 sm:px-8 md:px-12">
           {/* Interactive Liquid Effect Animation (from 21st.dev) */}
           <LiquidEffectAnimation
             className="absolute inset-0 z-0 pointer-events-auto opacity-45 mix-blend-screen"
@@ -162,10 +162,10 @@ export function App() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/25 to-[#090a0d]/85" />
           </div>
 
-          <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10 my-auto">
+          <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end relative z-10 h-full">
             
             {/* Left Column: Brand, Actions, & Live Telemetry HUD */}
-            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 sm:space-y-5 z-20">
+            <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 sm:space-y-5 z-20 my-auto py-4 sm:py-6">
               {/* Main Brand Title & Description */}
               <div className="space-y-2.5 sm:space-y-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff5722]/10 border border-[#ff5722]/30 text-[#ff5722] text-xs font-mono font-medium backdrop-blur-sm">
@@ -194,7 +194,7 @@ export function App() {
               </div>
 
               {/* Sleek Minimalist Live Telemetry HUD */}
-              <div className="w-full max-w-xl rounded-2xl bg-[#0e1015]/90 border border-white/[0.08] backdrop-blur-xl p-4 sm:p-5 shadow-2xl text-left">
+              <div className="w-full max-w-lg rounded-2xl bg-[#0e1015]/90 border border-white/[0.08] backdrop-blur-xl p-4 sm:p-5 shadow-2xl text-left">
                 <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-2.5 mb-3">
                   <span className="text-[#a6a39d] flex items-center gap-2">
                     <Cpu className="w-3.5 h-3.5 text-[#ff5722]" />
@@ -246,19 +246,9 @@ export function App() {
               </div>
             </div>
 
-            {/* Right Column: 3D Interactive Robot from Spline */}
-            <div className="lg:col-span-6 w-full h-[460px] sm:h-[520px] lg:h-[580px] xl:h-[620px] relative flex items-center justify-center pointer-events-auto">
-              {/* Cybernetic ambient floor glow beneath robot */}
-              <div className="absolute bottom-4 sm:bottom-8 w-64 h-16 rounded-[100%] bg-gradient-to-r from-transparent via-[#ff5722]/20 to-transparent blur-2xl pointer-events-none" />
-
-              {/* 3D Robot with smooth gradient mask to seamlessly dissolve bottom cuts */}
-              <div
-                className="w-full h-full flex items-center justify-center"
-                style={{
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 95%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 95%)',
-                }}
-              >
+            {/* Right Column: 3D Interactive Robot with full width and overflow-visible */}
+            <div className="lg:col-span-7 w-full h-[480px] sm:h-[560px] lg:h-[calc(100vh-4rem-3.5rem)] max-h-[720px] relative flex items-end justify-center self-end pointer-events-auto overflow-visible">
+              <div className="w-full h-full flex items-end justify-center translate-y-16 sm:translate-y-20 lg:translate-y-24 overflow-visible">
                 <SplineScene
                   scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                   className="w-full h-full"
