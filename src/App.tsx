@@ -12,6 +12,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import { LiquidEffectAnimation } from './components/ui/liquid-effect-animation';
+import { SplineScene } from './components/ui/splite';
 
 export function App() {
   const {
@@ -161,81 +162,96 @@ export function App() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/25 to-[#090a0d]/85" />
           </div>
 
-          <div className="max-w-3xl w-full mx-auto flex flex-col items-center text-center space-y-6 sm:space-y-7 relative z-10 my-auto">
-
-            {/* Main Brand Title & Description */}
-            <div className="space-y-3 sm:space-y-4">
-              <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white m-0 drop-shadow-[0_0_35px_rgba(255,87,34,0.25)]">
-                INCINERATOR
-              </h1>
-              <p className="text-sm sm:text-base md:text-lg text-[#b5b2ab] max-w-xl mx-auto leading-relaxed font-normal">
-                The perpetual autonomous buyback & incinerator on Robinhood Chain.
-                100% of trading fees are programmatically routed into DEX buybacks and sent to the irreversible dead sink.
-              </p>
-            </div>
-
-            {/* Primary Action Button */}
-            <div className="pt-1">
-              <button
-                onClick={navigateToBurn}
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#ff5722] to-[#ff7a00] hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-[0_0_30px_rgba(255,87,34,0.35)] hover:shadow-[0_0_40px_rgba(255,87,34,0.55)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
-              >
-                <Flame className="w-4 h-4 fill-white" />
-                <span>View Burns Ledger (/burn)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Sleek Minimalist Live Telemetry HUD */}
-            <div className="w-full max-w-2xl mx-auto mt-4 rounded-2xl bg-[#0e1015]/80 border border-white/[0.08] backdrop-blur-xl p-5 sm:p-6 shadow-2xl text-left">
-              <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-3 mb-4">
-                <span className="text-[#a6a39d] flex items-center gap-2">
-                  <Cpu className="w-3.5 h-3.5 text-[#ff5722]" />
-                  AUTONOMOUS INCINERATOR ENGINE
-                </span>
-                <span className="text-[#ff5722] font-semibold flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722] animate-ping" />
-                  {state.isWheelSpinning ? 'BURNING NOW' : 'STANDBY'}
-                </span>
+          <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center relative z-10 my-auto">
+            
+            {/* Left Column: Brand, Actions, & Live Telemetry HUD */}
+            <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 sm:space-y-7">
+              {/* Main Brand Title & Description */}
+              <div className="space-y-3 sm:space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff5722]/10 border border-[#ff5722]/30 text-[#ff5722] text-xs font-mono font-medium backdrop-blur-sm">
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>AUTONOMOUS PROTOCOL BOT</span>
+                </div>
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white m-0 drop-shadow-[0_0_35px_rgba(255,87,34,0.25)]">
+                  INCINERATOR
+                </h1>
+                <p className="text-sm sm:text-base md:text-lg text-[#b5b2ab] max-w-xl leading-relaxed font-normal">
+                  The perpetual autonomous buyback & incinerator on Robinhood Chain.
+                  100% of trading fees are programmatically routed into DEX buybacks and sent to the irreversible dead sink.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                {/* Escrow Pool Metric */}
-                <div>
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[#a6a39d] uppercase">
-                    <span>Fee Escrow Pool</span>
-                    <span className="text-[#ff5722] font-bold">{escrowProgressPercent.toFixed(1)}%</span>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-white mt-1">
-                    {state.currentEscrowBalanceETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">/ {targetThreshold.toFixed(4)} ETH</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-[#1b1c24] rounded-full overflow-hidden mt-2">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#ff5722] to-[#ffaa00] rounded-full transition-all duration-700 shadow-[0_0_10px_#ff5722]"
-                      style={{ width: `${Math.max(3, escrowProgressPercent)}%` }}
-                    />
-                  </div>
-                  <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
-                    {state.isWheelSpinning ? 'Executing swap on Uniswap v4...' : `Auto-sweep at ${targetThreshold.toFixed(4)} ETH threshold`}
-                  </div>
+              {/* Primary Action Button */}
+              <div className="pt-1">
+                <button
+                  onClick={navigateToBurn}
+                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#ff5722] to-[#ff7a00] hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-[0_0_30px_rgba(255,87,34,0.35)] hover:shadow-[0_0_40px_rgba(255,87,34,0.55)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <Flame className="w-4 h-4 fill-white" />
+                  <span>View Burns Ledger (/burn)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Sleek Minimalist Live Telemetry HUD */}
+              <div className="w-full max-w-2xl rounded-2xl bg-[#0e1015]/85 border border-white/[0.08] backdrop-blur-xl p-5 sm:p-6 shadow-2xl text-left">
+                <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-3 mb-4">
+                  <span className="text-[#a6a39d] flex items-center gap-2">
+                    <Cpu className="w-3.5 h-3.5 text-[#ff5722]" />
+                    AUTONOMOUS INCINERATOR ENGINE
+                  </span>
+                  <span className="text-[#ff5722] font-semibold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722] animate-ping" />
+                    {state.isWheelSpinning ? 'BURNING NOW' : 'STANDBY'}
+                  </span>
                 </div>
 
-                {/* Supply Incinerated Metric */}
-                <div className="sm:border-l sm:border-white/[0.06] sm:pl-6">
-                  <div className="text-[11px] font-mono text-[#a6a39d] uppercase">
-                    Supply Incinerated
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                  {/* Escrow Pool Metric */}
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-[#a6a39d] uppercase">
+                      <span>Fee Escrow Pool</span>
+                      <span className="text-[#ff5722] font-bold">{escrowProgressPercent.toFixed(1)}%</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold font-mono text-white mt-1">
+                      {state.currentEscrowBalanceETH.toFixed(4)} <span className="text-xs text-[#a6a39d] font-normal">/ {targetThreshold.toFixed(4)} ETH</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#1b1c24] rounded-full overflow-hidden mt-2">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#ff5722] to-[#ffaa00] rounded-full transition-all duration-700 shadow-[0_0_10px_#ff5722]"
+                        style={{ width: `${Math.max(3, escrowProgressPercent)}%` }}
+                      />
+                    </div>
+                    <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
+                      {state.isWheelSpinning ? 'Executing swap on Uniswap v4...' : `Auto-sweep at ${targetThreshold.toFixed(4)} ETH threshold`}
+                    </div>
                   </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-[#ff5722] mt-1">
-                    {formatCompact(state.totalTokensBurned)} <span className="text-xs font-normal text-white">TOKENS</span>
-                  </div>
-                  <div className="text-xs font-mono text-emerald-400 mt-1">
-                    {burnedPercent.toFixed(2)}% of total supply removed
-                  </div>
-                  <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
-                    Irreversible sink: 0x0...dEaD
+
+                  {/* Supply Incinerated Metric */}
+                  <div className="sm:border-l sm:border-white/[0.06] sm:pl-6">
+                    <div className="text-[11px] font-mono text-[#a6a39d] uppercase">
+                      Supply Incinerated
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold font-mono text-[#ff5722] mt-1">
+                      {formatCompact(state.totalTokensBurned)} <span className="text-xs font-normal text-white">TOKENS</span>
+                    </div>
+                    <div className="text-xs font-mono text-emerald-400 mt-1">
+                      {burnedPercent.toFixed(2)}% of total supply removed
+                    </div>
+                    <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
+                      Irreversible sink: 0x0...dEaD
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Right Column: Only the 3D Interactive Robot from Spline */}
+            <div className="lg:col-span-5 w-full h-[320px] sm:h-[400px] lg:h-[500px] relative flex items-center justify-center">
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
             </div>
 
           </div>
