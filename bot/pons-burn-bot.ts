@@ -140,88 +140,8 @@ const botState = {
   totalFeesClaimedETH: "0.9680",
   totalCyclesExecuted: 0,
   lastCycleTime: "",
-  lastJevDecision: {
-    model: "jev-latest",
-    confidence: 96,
-    readinessPercent: 13,
-    action: "ACCUMULATING_FEES",
-    urgencyScore: 25,
-    rawScore: 0.04,
-    evaluatedAt: new Date().toLocaleTimeString(),
-    reasoning: "Accumulating swap fees in FeeEscrow until threshold reached."
-  },
   logs: [] as BotMemoryLog[]
 };
-
-// Jev System One Autonomous Decision Engine for Trading & Buyback (Venice.ai)
-async function evaluateJevTradingDecision(claimableETH: string, thresholdETH: string) {
-  const veniceKey = process.env.VENICE_API_KEY || "";
-  if (!veniceKey) return null;
-
-  try {
-    const isReady = parseFloat(claimableETH) >= parseFloat(thresholdETH);
-    const marketState = `[JEVBURN Autonomous Protocol Telemetry]
-- Network: Robinhood Chain (EVM ID: 4663)
-- Token CA: ${currentConfig.tokenAddress}
-- Curve DEX: ${currentConfig.curveAddress}
-- Accumulated Escrow Fee: ${claimableETH} ETH
-- Target Execution Threshold: ${thresholdETH} ETH
-- Threshold Satisfied: ${isReady ? "YES" : "NO"}
-- Destination Sink: ${DEAD_ADDRESS}`;
-
-    const payload = {
-      model: "jev-latest",
-      state: marketState,
-      questions: {
-        "should_execute": {
-          "type": "noul",
-          "instructions": "Given the accumulated fee and target threshold, should the protocol trigger the autonomous buyback now?"
-        },
-        "urgency": {
-          "type": "noul",
-          "instructions": "Is immediate execution critical to prevent front-running or fee slippage?"
-        }
-      }
-    };
-
-    const res = await fetch("https://api.venice.ai/api/v1/decisions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${veniceKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const shouldExec = data.answers?.should_execute?.noul ?? (isReady ? 0.85 : 0.04);
-      const urgency = data.answers?.urgency?.noul ?? 0.25;
-      const action = shouldExec >= 0.65 ? "EXECUTE_BUYBACK" : "ACCUMULATING_FEES";
-      const confidence = action === "EXECUTE_BUYBACK" 
-        ? Math.round(shouldExec * 100) 
-        : Math.round(Math.max(0.85, 1 - shouldExec) * 100);
-
-      const result = {
-        model: "jev-latest",
-        confidence,
-        readinessPercent: Math.round(shouldExec * 100),
-        action,
-        urgencyScore: Math.round(urgency * 100),
-        rawScore: shouldExec,
-        evaluatedAt: new Date().toLocaleTimeString(),
-        reasoning: shouldExec >= 0.65 
-          ? "Threshold satisfied. Optimal window for DEX buyback & burn." 
-          : "Accumulating swap fees in FeeEscrow until threshold reached."
-      };
-      botState.lastJevDecision = result;
-      return result;
-    }
-  } catch (err: any) {
-    console.warn("⚠️ [Jev Decision Failure]:", err.message);
-  }
-  return null;
-}
 
 function addLog(type: "info" | "success" | "warn" | "error", message: string) {
   const timestamp = new Date().toLocaleTimeString();
@@ -330,11 +250,7 @@ async function executeCycle() {
     const shouldExecute = (claimableWei >= thresholdWei && claimableWei > 0n) || (initialUsableETH >= thresholdWei);
 
     if (shouldExecute) {
-      addLog("success", `THRESHOLD REACHED (Claimable: ${claimableETH} ETH, Wallet Usable: ${ethers.formatEther(initialUsableETH)} ETH, Threshold: ${currentConfig.claimThresholdETH} ETH). Consulting Jev Decision Model...`);
-      const jevEval = await evaluateJevTradingDecision(claimableETH, currentConfig.claimThresholdETH);
-      if (jevEval) {
-        addLog("info", `[Jev System One • jev-latest] AI Decision: ${jevEval.action} (${jevEval.confidence}% Confidence, Urgency: ${jevEval.urgencyScore}%)`);
-      }
+      addLog("success", `THRESHOLD REACHED (Claimable: ${claimableETH} ETH, Wallet Usable: ${ethers.formatEther(initialUsableETH)} ETH, Threshold: ${currentConfig.claimThresholdETH} ETH). Proceeding to execution cycle...`);
 
       // 1. CLAIM (Jika ada fee di Escrow)
       if (claimableWei > 0n) {
@@ -464,20 +380,9 @@ const server = http.createServer(async (req, res) => {
         totalFeesClaimedETH: botState.totalFeesClaimedETH,
         totalCyclesExecuted: botState.totalCyclesExecuted,
         lastCycleTime: botState.lastCycleTime,
-        lastJevDecision: botState.lastJevDecision,
         pollIntervalSeconds: currentConfig.pollIntervalSeconds,
         logs: botState.logs
       }
-    });
-  }
-
-  // Endpoint 1b: GET /api/jev/decision (Live Jev System One Trading Evaluation)
-  if (req.method === "GET" && (url === "/api/jev/decision" || url === "/api/jev/decision/")) {
-    const claimableETH = botState.escrowBalanceETH || "0.0";
-    const decision = await evaluateJevTradingDecision(claimableETH, currentConfig.claimThresholdETH);
-    return sendJSON(res, 200, {
-      success: true,
-      data: decision || botState.lastJevDecision
     });
   }
 
@@ -489,20 +394,20 @@ const PORT = currentConfig.port || 5005;
 
 server.on("error", (err: any) => {
   if (err.code === "EADDRINUSE") {
-    console.warn(`⚠️ [API] Port ${PORT} sedang dipakai. Mencoba port ${PORT + 1}...`);
+    console.warn(`[API] Port ${PORT} sedang dipakai. Mencoba port ${PORT + 1}...`);
     try {
       server.listen(PORT + 1, "0.0.0.0");
     } catch (e) {
-      console.warn("⚠️ API server dialihkan, proses flywheel bot tetap berjalan.");
+      console.warn("API server dialihkan, proses bot tetap berjalan.");
     }
   } else {
-    console.error("⚠️ [API Error]:", err.message);
+    console.error("[API Error]:", err.message);
   }
 });
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log("==========================================================");
-  console.log(`🚀 JEVBURN AUTONOMOUS FLYWHEEL & API SERVER ACTIVE`);
+  console.log(`JEVBURN AUTONOMOUS BURN ENGINE & API SERVER ACTIVE`);
   console.log(`   Server Port      : ${PORT}`);
   console.log(`   Admin API Ready  : http://localhost:${PORT}/api/status`);
   console.log(`   Operator Wallet  : ${botState.walletAddress || "Not ready"}`);

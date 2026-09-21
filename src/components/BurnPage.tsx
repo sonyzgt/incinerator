@@ -31,37 +31,6 @@ export const BurnPage: React.FC<BurnPageProps> = ({
   const [copiedDead, setCopiedDead] = useState(false);
   const [localLedger, setLocalLedger] = useState<BurnLedgerEntry[]>(burnLedger);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [jevDecision, setJevDecision] = useState<{
-    model: string;
-    confidence: number;
-    action: string;
-    urgencyScore: number;
-    readinessPercent?: number;
-    evaluatedAt: string;
-    reasoning: string;
-  } | null>(null);
-
-  // Poll live Jev System One Decision telemetry from Venice.ai
-  useEffect(() => {
-    let isCancelled = false;
-    const fetchJev = async () => {
-      try {
-        const res = await fetch('/api/jev/decision');
-        if (res.ok) {
-          const json = await res.json();
-          if (!isCancelled && json.success && json.data) {
-            setJevDecision(json.data);
-          }
-        }
-      } catch (e) {}
-    };
-    fetchJev();
-    const interval = setInterval(fetchJev, 15000);
-    return () => {
-      isCancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
 
   const explorerUrl = 'https://explorer.mainnet.chain.robinhood.com';
   const deadAddress = config.deadAddress || PONS_V2_CONFIG.contracts.deadAddress;
@@ -312,55 +281,6 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           </div>
         </div>
 
-        {/* JEV SYSTEM ONE DECISION ENGINE TELEMETRY CARD */}
-        <div className="rounded-2xl border border-orange-500/30 bg-[#0e1017] p-5 sm:p-6 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div className="space-y-1.5 max-w-xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-                </span>
-                <span className="text-xs font-mono font-bold tracking-wider text-orange-400 uppercase">
-                  VENICE.AI JEV SYSTEM ONE DECISION TELEMETRY
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-300 border border-orange-500/30">
-                  model: jev-latest
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10">
-                  /api/v1/decisions
-                </span>
-              </div>
-              <p className="text-xs text-[#a6a39d] leading-relaxed">
-                Autonomous quantitative decision model running on Venice.ai. Evaluates real-time DEX liquidity, swap fee accumulation, and optimal block timing for $JEVBURN buyback execution.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0 font-mono">
-              <div className="bg-[#14161f] border border-[#24252a] rounded-xl px-4 py-2.5">
-                <span className="text-[10px] text-zinc-500 uppercase block tracking-wider">AI Decision</span>
-                <span className={`text-sm font-bold ${jevDecision?.action === 'EXECUTE_BUYBACK' ? 'text-emerald-400' : 'text-orange-400'}`}>
-                  {jevDecision?.action || 'ANALYZING...'}
-                </span>
-              </div>
-
-              <div className="bg-[#14161f] border border-[#24252a] rounded-xl px-4 py-2.5">
-                <span className="text-[10px] text-zinc-500 uppercase block tracking-wider">Confidence</span>
-                <span className="text-sm font-bold text-white">
-                  {jevDecision ? `${jevDecision.confidence}%` : '...'}
-                </span>
-              </div>
-
-              <div className="hidden sm:block bg-[#14161f] border border-[#24252a] rounded-xl px-4 py-2.5">
-                <span className="text-[10px] text-zinc-500 uppercase block tracking-wider">Last Assessed</span>
-                <span className="text-xs text-zinc-400">
-                  {jevDecision?.evaluatedAt || 'Real-time'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Ledger Table Section */}
         <div className="rounded-xl bg-[#111217] border border-[#24252a] overflow-hidden">
