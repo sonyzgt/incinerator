@@ -1,14 +1,12 @@
 /**
- * PONS FAMILY V2 - AUTONOMOUS FLYWHEEL BOT & API SERVER
+ * PONS FAMILY V2 - AUTONOMOUS BUYBACK & BURN BOT
  * Network: Robinhood Chain (EVM Chain ID: 4663)
  * Reference: https://docs.ponsfamily.com/v2
  * 
  * Fitur:
- * 1. Menjalankan Autonomous Flywheel (Claim Fee -> Buyback -> Burn) 24/7 di PM2.
- * 2. Menyediakan HTTP API Server (/api/status, /api/config, /api/trigger)
- * 3. Terhubung langsung dengan halaman /memex (ganti Token CA langsung aktif tanpa restart PM2).
- * 4. Otomatis mendeteksi alamat Pons Curve dari Token CA (Zero Mismatch).
- * 5. Mode Standby cerdas jika Token CA belum diisi (tidak crash).
+ * 1. Menjalankan Autonomous Cycle (Claim Fee -> Buyback -> Burn) 24/7 di PM2.
+ * 2. Uniswap v4 Universal Router integration untuk token yang telah graduated.
+ * 3. Token CA & Curve Address terkunci permanen ke $JEVBURN.
  */
 
 import http from "http";
@@ -325,63 +323,70 @@ async function executeCycle() {
     addLog("info", `Checking Escrow Fee: ${claimableETH} ETH (Threshold: ${currentConfig.claimThresholdETH} ETH)`);
 
     const thresholdWei = ethers.parseEther(currentConfig.claimThresholdETH);
+    const gasBuffer = ethers.parseEther("0.0008");
+    const initialWalletBal = await provider.getBalance(wallet.address);
+    const initialUsableETH = initialWalletBal > gasBuffer ? initialWalletBal - gasBuffer : 0n;
 
-    if (claimableWei >= thresholdWei && claimableWei > 0n) {
-      addLog("success", `⚡ THRESHOLD REACHED (${claimableETH} ETH >= ${currentConfig.claimThresholdETH} ETH). Consulting Jev Decision Model...`);
+    const shouldExecute = (claimableWei >= thresholdWei && claimableWei > 0n) || (initialUsableETH >= thresholdWei);
+
+    if (shouldExecute) {
+      addLog("success", `THRESHOLD REACHED (Claimable: ${claimableETH} ETH, Wallet Usable: ${ethers.formatEther(initialUsableETH)} ETH, Threshold: ${currentConfig.claimThresholdETH} ETH). Consulting Jev Decision Model...`);
       const jevEval = await evaluateJevTradingDecision(claimableETH, currentConfig.claimThresholdETH);
       if (jevEval) {
-        addLog("info", `⚡ [Jev System One • jev-latest] AI Decision: ${jevEval.action} (${jevEval.confidence}% Confidence, Urgency: ${jevEval.urgencyScore}%)`);
+        addLog("info", `[Jev System One • jev-latest] AI Decision: ${jevEval.action} (${jevEval.confidence}% Confidence, Urgency: ${jevEval.urgencyScore}%)`);
       }
 
-      // 1. CLAIM
-      botState.status = "claiming" as any;
-      addLog("info", `[1/3] Claiming ${claimableETH} ETH from Pons Fee Escrow...`);
-      const claimNonce = await provider.getTransactionCount(wallet.address, "latest");
-      const claimTx = await feeEscrow.claim({ nonce: claimNonce });
-      addLog("info", `Claim Tx broadcasted: ${claimTx.hash}`);
-      await claimTx.wait();
-      addLog("success", "Fee successfully claimed to operator wallet!");
-      const claimedVal = parseFloat(claimableETH) || 0;
-      botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.0") + claimedVal).toFixed(4);
-      botState.escrowBalanceETH = "0.0";
+      // 1. CLAIM (Jika ada fee di Escrow)
+      if (claimableWei > 0n) {
+        botState.status = "claiming" as any;
+        addLog("info", `[1/3] Claiming ${claimableETH} ETH from Pons Fee Escrow...`);
+        const claimNonce = await provider.getTransactionCount(wallet.address, "latest");
+        const claimTx = await feeEscrow.claim({ nonce: claimNonce });
+        addLog("info", `Claim Tx broadcasted: ${claimTx.hash}`);
+        await claimTx.wait();
+        addLog("success", "Fee successfully claimed to operator wallet!");
+        const claimedVal = parseFloat(claimableETH) || 0;
+        botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.0") + claimedVal).toFixed(4);
+        botState.escrowBalanceETH = "0.0";
+      } else {
+        addLog("info", `[1/3] Escrow balance is 0 ETH. Proceeding to buyback with accumulated operator balance (${ethers.formatEther(initialUsableETH)} ETH)...`);
+      }
 
       // 2. BUYBACK (Curve DEX atau Uniswap v4 Universal Router jika sudah lulus migrasi)
       botState.status = "buyback" as any;
       const isGraduated = await curve.graduated().catch(() => false);
 
       const walletBal = await provider.getBalance(wallet.address);
-      const gasBuffer = ethers.parseEther("0.0008");
-      let buyAmountWei = claimableWei;
+      let buyAmountWei = walletBal > gasBuffer ? walletBal - gasBuffer : 0n;
 
-      // Pastikan sisa saldo cukup untuk gas
-      if (walletBal < buyAmountWei + gasBuffer && walletBal > gasBuffer) {
-        buyAmountWei = walletBal - gasBuffer;
-      }
-
-      if (isGraduated) {
-        addLog("info", `[2/3] Token has graduated! Executing Buyback on Uniswap v4 Router (${ethers.formatEther(buyAmountWei)} ETH)...`);
-        const buyData = buildUniswapV4Buy(buyAmountWei);
-        const buyNonce = await provider.getTransactionCount(wallet.address, "latest");
-        const buyTx = await wallet.sendTransaction({
-          to: UNISWAP_V4_UNIVERSAL_ROUTER,
-          value: buyAmountWei,
-          data: buyData,
-          gasLimit: 400000n,
-          nonce: buyNonce
-        });
-        addLog("info", `Uniswap v4 Buyback Tx broadcasted: ${buyTx.hash}`);
-        await buyTx.wait();
-        addLog("success", `Buyback on Uniswap v4 succeeded (${ethers.formatEther(buyAmountWei)} ETH)!`);
+      if (buyAmountWei > 0n) {
+        if (isGraduated) {
+          addLog("info", `[2/3] Token has graduated! Executing Buyback on Uniswap v4 Router (${ethers.formatEther(buyAmountWei)} ETH)...`);
+          const buyData = buildUniswapV4Buy(buyAmountWei);
+          const buyNonce = await provider.getTransactionCount(wallet.address, "latest");
+          const buyTx = await wallet.sendTransaction({
+            to: UNISWAP_V4_UNIVERSAL_ROUTER,
+            value: buyAmountWei,
+            data: buyData,
+            gasLimit: 400000n,
+            nonce: buyNonce
+          });
+          addLog("info", `Uniswap v4 Buyback Tx broadcasted: ${buyTx.hash}`);
+          await buyTx.wait();
+          addLog("success", `Buyback on Uniswap v4 succeeded (${ethers.formatEther(buyAmountWei)} ETH)!`);
+        } else {
+          addLog("info", `[2/3] Executing Buyback on Curve DEX (${ethers.formatEther(buyAmountWei)} ETH)...`);
+          const buyNonce = await provider.getTransactionCount(wallet.address, "latest");
+          const buyTx = await curve.buy(buyAmountWei, 0n, wallet.address, {
+            value: buyAmountWei,
+            nonce: buyNonce
+          });
+          addLog("info", `Buyback Tx broadcasted: ${buyTx.hash}`);
+          await buyTx.wait();
+          addLog("success", `Buyback on Curve succeeded (${ethers.formatEther(buyAmountWei)} ETH)!`);
+        }
       } else {
-        addLog("info", `[2/3] Executing Buyback on Curve DEX (${ethers.formatEther(buyAmountWei)} ETH)...`);
-        const buyNonce = await provider.getTransactionCount(wallet.address, "latest");
-        const buyTx = await curve.buy(buyAmountWei, 0n, wallet.address, {
-          value: buyAmountWei,
-          nonce: buyNonce
-        });
-        addLog("info", `Buyback Tx broadcasted: ${buyTx.hash}`);
-        await buyTx.wait();
-        addLog("success", `Buyback on Curve succeeded (${ethers.formatEther(buyAmountWei)} ETH)!`);
+        addLog("warn", "[2/3] Insufficient wallet balance for buyback after gas buffer.");
       }
 
       // 3. BURN TOKEN
@@ -390,14 +395,17 @@ async function executeCycle() {
       const tokenBalance: bigint = await token.balanceOf(wallet.address);
       const formattedBalance = ethers.formatUnits(tokenBalance, 18);
 
-      addLog("info", `[3/3] Burning ${formattedBalance} $${tokenSymbol} to DEAD_ADDRESS...`);
-      const burnNonce = await provider.getTransactionCount(wallet.address, "latest");
-      const burnTx = await token.transfer(DEAD_ADDRESS, tokenBalance, { nonce: burnNonce });
-      addLog("info", `Burn Tx broadcasted: ${burnTx.hash}`);
-      await burnTx.wait();
-      addLog("success", `🔥 COMPLETED: ${formattedBalance} $${tokenSymbol} PERMANENTLY INCINERATED!`);
-
-      botState.totalCyclesExecuted++;
+      if (tokenBalance > 0n) {
+        addLog("info", `[3/3] Burning ${formattedBalance} $${tokenSymbol} to DEAD_ADDRESS...`);
+        const burnNonce = await provider.getTransactionCount(wallet.address, "latest");
+        const burnTx = await token.transfer(DEAD_ADDRESS, tokenBalance, { nonce: burnNonce });
+        addLog("info", `Burn Tx broadcasted: ${burnTx.hash}`);
+        await burnTx.wait();
+        addLog("success", `COMPLETED: ${formattedBalance} $${tokenSymbol} PERMANENTLY INCINERATED!`);
+        botState.totalCyclesExecuted++;
+      } else {
+        addLog("warn", `[3/3] No $${tokenSymbol} tokens in wallet to burn.`);
+      }
     }
   } catch (err: any) {
     addLog("error", `Cycle execution error: ${err.message || err}`);
