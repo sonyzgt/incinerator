@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Cpu,
 } from 'lucide-react';
+import { LiquidEffectAnimation } from './components/ui/liquid-effect-animation';
 
 export function App() {
   const {
@@ -141,18 +142,28 @@ export function App() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {/* Full-Screen Futuristic Hero Section with banner.png as immersive background */}
+        {/* Full-Screen Futuristic Hero Section with Liquid Effect Animation + banner background */}
         <section className="flex-1 relative flex items-center justify-center overflow-hidden py-10 sm:py-16 px-4 sm:px-8 md:px-12">
+          {/* Interactive Liquid Effect Animation (from 21st.dev) */}
+          <LiquidEffectAnimation
+            className="absolute inset-0 z-0 pointer-events-auto opacity-45 mix-blend-screen"
+            metalness={0.85}
+            roughness={0.18}
+            displacementScale={5.5}
+            rain={true}
+            rainTimeDelta={0.25}
+          />
+
           {/* Full-Width Background Banner Image with Cinematic Dark Gradients */}
-          <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 z-[1] pointer-events-none">
             <img
               src="/banner.png"
               alt="INCINERATOR Furnace Background"
-              className="w-full h-full object-cover object-center opacity-50 sm:opacity-60 filter brightness-[0.9] contrast-[1.05]"
+              className="w-full h-full object-cover object-center opacity-45 sm:opacity-55 filter brightness-[0.85] contrast-[1.1]"
             />
             {/* Cinematic Gradients for depth and readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/40 to-[#090a0d]/70" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/20 to-[#090a0d]/85" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/40 to-[#090a0d]/75" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/25 to-[#090a0d]/85" />
           </div>
 
           <div className="max-w-3xl w-full mx-auto flex flex-col items-center text-center space-y-6 sm:space-y-7 relative z-10 my-auto">
@@ -185,7 +196,7 @@ export function App() {
               <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-3 mb-4">
                 <span className="text-[#a6a39d] flex items-center gap-2">
                   <Cpu className="w-3.5 h-3.5 text-[#ff5722]" />
-                  AUTONOMOUS FLYWHEEL ENGINE
+                  AUTONOMOUS INCINERATOR ENGINE
                 </span>
                 <span className="text-[#ff5722] font-semibold flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722] animate-ping" />
@@ -210,7 +221,7 @@ export function App() {
                     />
                   </div>
                   <div className="text-[11px] text-[#65636c] font-mono mt-1.5">
-                    {state.isWheelSpinning ? 'Executing swap on Curve...' : `Auto-sweep at ${targetThreshold.toFixed(4)} ETH threshold`}
+                    {state.isWheelSpinning ? 'Executing swap on Uniswap v4...' : `Auto-sweep at ${targetThreshold.toFixed(4)} ETH threshold`}
                   </div>
                 </div>
 

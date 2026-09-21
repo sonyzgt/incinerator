@@ -11,6 +11,7 @@ import {
 import { FlywheelState, ActivityLog, MachineConfig, BurnLedgerEntry } from '../types';
 import { PONS_V2_CONFIG } from '../contracts';
 import { fetchOnChainBurnLedger } from '../utils/web3';
+import { LiquidEffectAnimation } from './ui/liquid-effect-animation';
 
 interface BurnPageProps {
   state: FlywheelState;
@@ -157,7 +158,17 @@ export const BurnPage: React.FC<BurnPageProps> = ({
   });
 
   return (
-    <div className="min-h-screen bg-[#090a0d] text-[#f5f3ef] font-satoshi flex flex-col selection:bg-[#ff5722] selection:text-[#090a0d]">
+    <div className="min-h-screen bg-[#090a0d] text-[#f5f3ef] font-satoshi flex flex-col selection:bg-[#ff5722] selection:text-[#090a0d] relative">
+      {/* Ambient Liquid Effect Animation */}
+      <LiquidEffectAnimation
+        className="fixed inset-0 pointer-events-none opacity-25 mix-blend-screen -z-10"
+        metalness={0.9}
+        roughness={0.25}
+        displacementScale={4}
+        rain={true}
+        rainTimeDelta={0.3}
+      />
+
       {/* Navigation Bar */}
       <header className="h-16 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-[#24252a] bg-[#090a0d]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="flex items-center gap-4">
