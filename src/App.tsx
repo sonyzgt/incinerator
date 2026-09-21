@@ -247,13 +247,23 @@ export function App() {
             </div>
 
             {/* Right Column: 3D Interactive Robot from Spline */}
-            <div className="lg:col-span-6 w-full h-[360px] sm:h-[420px] lg:h-[500px] xl:h-[540px] relative flex items-center justify-center pointer-events-auto">
-              <SplineScene
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full"
-              />
-              {/* Seamless atmospheric bottom fade */}
-              <div className="absolute -bottom-1 inset-x-0 h-16 sm:h-20 bg-gradient-to-t from-[#090a0d] to-transparent pointer-events-none z-10" />
+            <div className="lg:col-span-6 w-full h-[460px] sm:h-[520px] lg:h-[580px] xl:h-[620px] relative flex items-center justify-center pointer-events-auto">
+              {/* Cybernetic ambient floor glow beneath robot */}
+              <div className="absolute bottom-4 sm:bottom-8 w-64 h-16 rounded-[100%] bg-gradient-to-r from-transparent via-[#ff5722]/20 to-transparent blur-2xl pointer-events-none" />
+
+              {/* 3D Robot with smooth gradient mask to seamlessly dissolve bottom cuts */}
+              <div
+                className="w-full h-full flex items-center justify-center"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 95%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 95%)',
+                }}
+              >
+                <SplineScene
+                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                  className="w-full h-full"
+                />
+              </div>
             </div>
 
           </div>
