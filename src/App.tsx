@@ -246,15 +246,12 @@ export function App() {
               </div>
             </div>
 
-            {/* Right Column: Balanced 3D Interactive Robot from Spline */}
-            <div className="lg:col-span-6 w-full h-[450px] sm:h-[520px] md:h-[600px] lg:h-[680px] xl:h-[740px] relative flex items-center justify-center overflow-visible pointer-events-auto">
-              <div className="w-full h-full scale-100 sm:scale-105 lg:scale-110 transform origin-center flex items-center justify-center">
-                <SplineScene
-                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                  className="w-full h-full"
-                  zoom={1.0}
-                />
-              </div>
+            {/* Right Column: 3D Interactive Robot from Spline */}
+            <div className="lg:col-span-6 w-full h-[460px] sm:h-[540px] lg:h-[620px] xl:h-[680px] relative flex items-center justify-center pointer-events-auto">
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
             </div>
 
           </div>
