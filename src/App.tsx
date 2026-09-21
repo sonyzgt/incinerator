@@ -162,10 +162,10 @@ export function App() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/25 to-[#090a0d]/85" />
           </div>
 
-          <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center relative z-10 my-auto">
+          <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center relative z-10 my-auto">
             
             {/* Left Column: Brand, Actions, & Live Telemetry HUD */}
-            <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 sm:space-y-7">
+            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 sm:space-y-7 z-20">
               {/* Main Brand Title & Description */}
               <div className="space-y-3 sm:space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff5722]/10 border border-[#ff5722]/30 text-[#ff5722] text-xs font-mono font-medium backdrop-blur-sm">
@@ -194,7 +194,7 @@ export function App() {
               </div>
 
               {/* Sleek Minimalist Live Telemetry HUD */}
-              <div className="w-full max-w-2xl rounded-2xl bg-[#0e1015]/85 border border-white/[0.08] backdrop-blur-xl p-5 sm:p-6 shadow-2xl text-left">
+              <div className="w-full max-w-xl rounded-2xl bg-[#0e1015]/90 border border-white/[0.08] backdrop-blur-xl p-5 sm:p-6 shadow-2xl text-left">
                 <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-3 mb-4">
                   <span className="text-[#a6a39d] flex items-center gap-2">
                     <Cpu className="w-3.5 h-3.5 text-[#ff5722]" />
@@ -246,12 +246,15 @@ export function App() {
               </div>
             </div>
 
-            {/* Right Column: Only the 3D Interactive Robot from Spline */}
-            <div className="lg:col-span-5 w-full h-[320px] sm:h-[400px] lg:h-[500px] relative flex items-center justify-center">
-              <SplineScene
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full"
-              />
+            {/* Right Column: Balanced 3D Interactive Robot from Spline */}
+            <div className="lg:col-span-6 w-full h-[450px] sm:h-[520px] md:h-[600px] lg:h-[680px] xl:h-[740px] relative flex items-center justify-center overflow-visible pointer-events-auto">
+              <div className="w-full h-full scale-100 sm:scale-105 lg:scale-110 transform origin-center flex items-center justify-center">
+                <SplineScene
+                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                  className="w-full h-full"
+                  zoom={1.0}
+                />
+              </div>
             </div>
 
           </div>
