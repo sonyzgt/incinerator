@@ -219,17 +219,12 @@ export const BurnPage: React.FC<BurnPageProps> = ({
       {/* Main Ledger Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
         
-        {/* Burn Header Hero with banner.png background */}
-        <div className="rounded-2xl border border-[#24252a] p-6 sm:p-10 flex flex-col md:flex-row md:items-end justify-between gap-6 relative overflow-hidden shadow-2xl bg-[#090a0d]">
-          {/* Full Background Banner */}
+        {/* Burn Header Hero */}
+        <div className="rounded-2xl border border-[#24252a] p-6 sm:p-10 flex flex-col md:flex-row md:items-end justify-between gap-6 relative overflow-hidden shadow-2xl bg-[#0e1015]/80 backdrop-blur-xl">
+          {/* Subtle Atmospheric Gradient Overlay */}
           <div className="absolute inset-0 z-0 pointer-events-none">
-            <img
-              src="/banner.png"
-              alt="INCINERATOR Combustion Chamber"
-              className="w-full h-full object-cover object-center opacity-30 filter brightness-[0.85]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/75 to-[#090a0d]/90" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#090a0d] via-transparent to-[#090a0d]/90" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/50 to-[#090a0d]/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#ff5722]/5 via-transparent to-[#090a0d]/80" />
           </div>
 
           <div className="space-y-3 relative z-10 max-w-2xl">

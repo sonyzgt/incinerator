@@ -147,21 +147,16 @@ export function App() {
           {/* Interactive Liquid Effect Animation (from 21st.dev) */}
           <LiquidEffectAnimation
             className="absolute inset-0 z-0 pointer-events-auto opacity-45 mix-blend-screen"
-            metalness={0.85}
+            color="#2a1208"
+            metalness={0.9}
             roughness={0.18}
             displacementScale={5.5}
             rain={true}
             rainTimeDelta={0.25}
           />
 
-          {/* Full-Width Background Banner Image with Cinematic Dark Gradients */}
+          {/* Cinematic Dark Gradients for depth and readability */}
           <div className="absolute inset-0 z-[1] pointer-events-none">
-            <img
-              src="/banner.png"
-              alt="INCINERATOR Furnace Background"
-              className="w-full h-full object-cover object-center opacity-45 sm:opacity-55 filter brightness-[0.85] contrast-[1.1]"
-            />
-            {/* Cinematic Gradients for depth and readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/40 to-[#090a0d]/75" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/25 to-[#090a0d]/85" />
           </div>
