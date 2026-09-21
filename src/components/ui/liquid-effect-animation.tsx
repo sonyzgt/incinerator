@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 export interface LiquidEffectAnimationProps {
-  imageUrl?: string;
+  color?: string;
   metalness?: number;
   roughness?: number;
   displacementScale?: number;
@@ -12,12 +12,12 @@ export interface LiquidEffectAnimationProps {
 }
 
 export function LiquidEffectAnimation({
-  imageUrl = '/liquid-texture.png',
-  metalness = 0.8,
-  roughness = 0.22,
+  color,
+  metalness = 0.85,
+  roughness = 0.2,
   displacementScale = 5,
   rain = true,
-  rainTimeDelta = 0.2,
+  rainTimeDelta = 0.25,
   className = 'absolute inset-0 w-full h-full pointer-events-none',
   style,
 }: LiquidEffectAnimationProps) {
@@ -37,21 +37,16 @@ export function LiquidEffectAnimation({
 
         if (isDisposed || !canvasRef.current) return;
 
+        // Initialize pure procedural WebGL liquid effect with zero external png textures
         const app = LiquidBackground(canvasRef.current);
         appInstance = app;
-
-        if (imageUrl) {
-          try {
-            await app.loadImage(imageUrl);
-          } catch {
-            // Fallback to CDN if local asset fails
-            await app.loadImage('https://cdn.21st.dev/assets/mirror/95/95e97d22cb2df434400243c60803fb89a5e25a46dad13c4a6d5cb27246173cf0.png');
-          }
-        }
 
         if (app.liquidPlane && app.liquidPlane.material) {
           app.liquidPlane.material.metalness = metalness;
           app.liquidPlane.material.roughness = roughness;
+          if (color && app.liquidPlane.material.color && typeof app.liquidPlane.material.color.set === 'function') {
+            app.liquidPlane.material.color.set(color);
+          }
         }
 
         if (app.liquidPlane && app.liquidPlane.uniforms && app.liquidPlane.uniforms.displacementScale) {
@@ -77,7 +72,7 @@ export function LiquidEffectAnimation({
         appInstance.dispose();
       }
     };
-  }, [imageUrl, metalness, roughness, displacementScale, rain, rainTimeDelta]);
+  }, [color, metalness, roughness, displacementScale, rain, rainTimeDelta]);
 
   return (
     <div className={`overflow-hidden ${className}`} style={style}>
