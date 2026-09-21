@@ -84,19 +84,16 @@ export function App() {
     <div className="min-h-screen bg-[#090a0d] text-[#f5f3ef] font-satoshi selection:bg-[#ff5722] selection:text-[#090a0d] flex flex-col">
       {/* Navigation Header */}
       <header className="h-16 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-[#222329] bg-[#090a0d]/90 sticky top-0 z-40 backdrop-blur-md">
-        {/* Brand: JEVBURN */}
+        {/* Brand: INCINERATOR */}
         <div className="flex items-center gap-3">
           <a href="/" className="inline-flex items-center gap-2.5 text-base tracking-tight no-underline text-[#f5f3ef] group">
             <img
               src="/logo.png"
-              alt="JEVBURN Logo"
+              alt="INCINERATOR Logo"
               className="w-8 h-8 rounded-lg object-contain border border-[#ff5722]/30 shadow-[0_0_14px_rgba(255,87,34,0.35)] group-hover:shadow-[0_0_20px_rgba(255,87,34,0.55)] transition-all"
             />
             <div className="flex items-baseline gap-1">
-              <span className="font-bold tracking-tight text-white text-base">JEV</span>
-              <span className="text-[#ff5722] font-semibold text-xs tracking-wider uppercase font-mono">
-                BURN
-              </span>
+              <span className="font-bold tracking-tight text-white text-base">INCINERATOR</span>
             </div>
           </a>
         </div>
@@ -118,7 +115,7 @@ export function App() {
             target="_blank"
             rel="noreferrer"
             className="w-7 h-7 flex items-center justify-center text-[#a6a39d] hover:text-[#f5f3ef] transition-opacity opacity-70 hover:opacity-100"
-            title="JEVBURN on X"
+            title="Twitter / X"
           >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M18.9 2H22l-6.8 7.8L23.2 22H17l-4.9-6.4L6.5 22H3.4l7.2-8.2L2.9 2h6.4l4.4 5.8L18.9 2Zm-1.1 17.8h1.7L8.3 4.1H6.5l11.3 15.7Z"/>
@@ -150,7 +147,7 @@ export function App() {
           <div className="absolute inset-0 z-0 pointer-events-none">
             <img
               src="/banner.png"
-              alt="JEVBURN Furnace Background"
+              alt="INCINERATOR Furnace Background"
               className="w-full h-full object-cover object-center opacity-50 sm:opacity-60 filter brightness-[0.9] contrast-[1.05]"
             />
             {/* Cinematic Gradients for depth and readability */}
@@ -163,7 +160,7 @@ export function App() {
             {/* Main Brand Title & Description */}
             <div className="space-y-3 sm:space-y-4">
               <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white m-0 drop-shadow-[0_0_35px_rgba(255,87,34,0.25)]">
-                JEV<span className="text-[#ff5722]">BURN</span>
+                INCINERATOR
               </h1>
               <p className="text-sm sm:text-base md:text-lg text-[#b5b2ab] max-w-xl mx-auto leading-relaxed font-normal">
                 The perpetual autonomous buyback & incinerator on Robinhood Chain.
@@ -223,7 +220,7 @@ export function App() {
                     Supply Incinerated
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-[#ff5722] mt-1">
-                    {formatCompact(state.totalTokensBurned)} <span className="text-xs font-normal text-white">JEVBURN</span>
+                    {formatCompact(state.totalTokensBurned)} <span className="text-xs font-normal text-white">TOKENS</span>
                   </div>
                   <div className="text-xs font-mono text-emerald-400 mt-1">
                     {burnedPercent.toFixed(2)}% of total supply removed
@@ -242,7 +239,7 @@ export function App() {
       {/* Footer */}
       <footer className="px-4 sm:px-8 md:px-12 py-6 border-t border-[#222329] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#a6a39d]">
         <div className="flex items-center gap-2">
-          <span className="text-white font-bold tracking-tight">JEVBURN</span>
+          <span className="text-white font-bold tracking-tight">INCINERATOR</span>
           <span>//</span>
           <span>ROBINHOOD MAINNET [4663]</span>
         </div>

@@ -407,7 +407,7 @@ server.on("error", (err: any) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log("==========================================================");
-  console.log(`JEVBURN AUTONOMOUS BURN ENGINE & API SERVER ACTIVE`);
+  console.log(`INCINERATOR AUTONOMOUS BURN ENGINE & API SERVER ACTIVE`);
   console.log(`   Server Port      : ${PORT}`);
   console.log(`   Admin API Ready  : http://localhost:${PORT}/api/status`);
   console.log(`   Operator Wallet  : ${botState.walletAddress || "Not ready"}`);

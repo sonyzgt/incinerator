@@ -172,11 +172,11 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           <a href="/" onClick={(e) => { e.preventDefault(); onNavigateHome(); }} className="flex items-center gap-2 text-[#f5f3ef] no-underline">
             <img
               src="/logo.png"
-              alt="JEVBURN Logo"
+              alt="INCINERATOR Logo"
               className="w-7 h-7 rounded-lg object-contain border border-[#ff5722]/30 shadow-[0_0_12px_rgba(255,87,34,0.3)]"
             />
             <span className="font-bold text-base tracking-tight">
-              JEV<span className="text-[#ff5722] font-semibold">BURN</span>
+              INCINERATOR
             </span>
           </a>
         </div>
@@ -214,7 +214,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
           <div className="absolute inset-0 z-0 pointer-events-none">
             <img
               src="/banner.png"
-              alt="JEVBURN Combustion Chamber"
+              alt="INCINERATOR Combustion Chamber"
               className="w-full h-full object-cover object-center opacity-30 filter brightness-[0.85]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/75 to-[#090a0d]/90" />
@@ -232,7 +232,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             </h1>
 
             <p className="text-sm text-[#a6a39d] leading-relaxed">
-              Every fee collected from Pons Curve trading volume is automatically swept, swapped for $JEVBURN on DEX,
+              Every fee collected from DEX trading volume is automatically swept, swapped for tokens on DEX,
               and permanently incinerated to <code className="text-[#ff5722]">0x000...dEaD</code>. Fully autonomous and irrevocable.
             </p>
           </div>
@@ -253,7 +253,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#ff5722] font-mono mt-1">
               {formatNumber(totalTokensBurned)}
             </div>
-            <span className="text-xs text-[#a6a39d] mt-1 block">JEVBURN permanently destroyed</span>
+            <span className="text-xs text-[#a6a39d] mt-1 block">Tokens permanently destroyed</span>
           </div>
 
           <div className="p-4 sm:p-5 rounded-xl bg-[#111217] border border-[#24252a]">
@@ -325,7 +325,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
             <span>Cycle</span>
             <span>Time</span>
             <span>Claimed ETH</span>
-            <span>Burned JEVBURN</span>
+            <span>Burned Tokens</span>
             <span className="text-right">Transactions (Explorer)</span>
           </div>
 
@@ -372,7 +372,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
                   {/* Burned */}
                   <div className="flex md:flex-col justify-between md:justify-start text-xs font-mono">
                     <span className="md:hidden text-[#a6a39d]">Burned:</span>
-                    <strong className="text-[#ff5722] font-bold">{formatNumber(entry.burnedJEV)} JEVBURN</strong>
+                    <strong className="text-[#ff5722] font-bold">{formatNumber(entry.burnedJEV)} TOKENS</strong>
                     <small className="text-[#a6a39d]">Sent to Dead Sink</small>
                   </div>
 
@@ -421,7 +421,7 @@ export const BurnPage: React.FC<BurnPageProps> = ({
       {/* Footer */}
       <footer className="h-16 px-4 sm:px-8 border-t border-[#24252a] flex items-center justify-between text-xs text-[#a6a39d] mt-12">
         <button onClick={onNavigateHome} className="hover:text-white transition-colors cursor-pointer">
-          JEVBURN &bull; Return to Overview
+          INCINERATOR &bull; Return to Overview
         </button>
         <div className="flex items-center gap-4">
           <a href={`https://explorer.mainnet.chain.robinhood.com/token/${config.tokenAddress}`} target="_blank" rel="noreferrer" className="hover:text-white">

@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
             </div>
             <span className="font-orbitron font-bold text-base tracking-wider text-white group-hover:text-cyan-300 transition-colors">
-              JEVBURN
+              INCINERATOR
             </span>
             <span className="text-zinc-600 font-mono text-xs select-none">//</span>
             <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase hidden sm:inline">

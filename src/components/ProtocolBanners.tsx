@@ -25,11 +25,11 @@ export const TopBroadcastBanner: React.FC<TopBroadcastBannerProps> = ({
   totalFeesClaimedETH,
 }) => {
   const tickerItems = [
-    `🔥 ${totalBurnedFormatted} JEVBURN PERMANENTLY BURNED (${burnedPercent.toFixed(2)}% OF TOTAL SUPPLY)`,
-    `⚡ 100% PROGRAMMATIC REINVESTMENT • ZERO HUMAN INTERVENTION`,
-    `💎 ${totalFeesClaimedETH.toFixed(4)} ETH SWEPT DIRECTLY INTO DEX BUYBACKS`,
-    `🛡️ PONS v2 CANONICAL ESCROW DAEMON ACTIVE 24/7`,
-    `🚀 ROBINHOOD MAINNET [CHAIN ID: 4663] • ZERO ADMIN PRIVATE KEYS`,
+    `${totalBurnedFormatted} TOKENS PERMANENTLY INCINERATED (${burnedPercent.toFixed(2)}% OF TOTAL SUPPLY)`,
+    `100% PROGRAMMATIC REINVESTMENT • ZERO HUMAN INTERVENTION`,
+    `${totalFeesClaimedETH.toFixed(4)} ETH SWEPT DIRECTLY INTO DEX BUYBACKS`,
+    `CANONICAL ESCROW DAEMON ACTIVE 24/7`,
+    `ROBINHOOD MAINNET [CHAIN ID: 4663] • ZERO ADMIN PRIVATE KEYS`,
   ];
 
   return (
@@ -186,7 +186,7 @@ export const DeflationaryMilestoneBanner: React.FC<DeflationaryMilestoneBannerPr
 
             <p className="text-xs font-mono text-zinc-400">
               <span className="font-orbitron font-bold text-rose-400 text-sm">
-                {totalBurnedFormatted} JEVBURN
+                {totalBurnedFormatted} TOKENS
               </span>{' '}
               permanently removed from circulation forever.
             </p>
@@ -195,7 +195,7 @@ export const DeflationaryMilestoneBanner: React.FC<DeflationaryMilestoneBannerPr
             <div className="pt-2 max-w-md">
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
                 <span>CIRCULATION BURNED:</span>
-                <span className="text-rose-400 font-bold">{burnedPercent.toFixed(2)}% / 1,000,000,000 JEVBURN</span>
+                <span className="text-rose-400 font-bold">{burnedPercent.toFixed(2)}% / 1,000,000,000 TOKENS</span>
               </div>
               <div className="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden">
                 <div

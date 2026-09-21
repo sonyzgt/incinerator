@@ -13,8 +13,8 @@ export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || 
 export const OFFICIAL_RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';
 
 const ENV_CYCLE_INTERVAL = parseInt(import.meta.env.VITE_CYCLE_INTERVAL_SECONDS || '300', 10);
-const ENV_TOKEN_NAME = import.meta.env.VITE_TOKEN_NAME || 'JEVBURN';
-const ENV_TOKEN_SYMBOL = import.meta.env.VITE_TOKEN_SYMBOL || 'JEVBURN';
+const ENV_TOKEN_NAME = import.meta.env.VITE_TOKEN_NAME || 'INCINERATOR';
+const ENV_TOKEN_SYMBOL = import.meta.env.VITE_TOKEN_SYMBOL || 'INCINERATOR';
 const ENV_CLAIM_THRESHOLD = parseFloat(import.meta.env.VITE_CLAIM_THRESHOLD_ETH || '0.015');
 
 export const INITIAL_CONFIG: MachineConfig = {
@@ -207,7 +207,7 @@ export function useFlywheelEngine() {
                   timestamp: entry.timeStr.split(' (')[0],
                   phase: 'burn',
                   action: 'BURN TO DEAD',
-                  details: `Permanently incinerated ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} $JEVBURN to 0x000...dEaD`,
+                  details: `Permanently incinerated ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} tokens to 0x000...dEaD`,
                   txHash: entry.burnTx,
                   amountETH: entry.claimedETH,
                   amountToken: Math.round(entry.burnedJEV),
@@ -220,12 +220,12 @@ export function useFlywheelEngine() {
                     timestamp: entry.timeStr.split(' (')[0],
                     phase: 'buyback',
                     action: 'AUTO-BUYBACK',
-                    details: `Swapped ${entry.claimedETH.toFixed(4)} ETH on Curve -> bought ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} $JEVBURN`,
+                    details: `Swapped ${entry.claimedETH.toFixed(4)} ETH on DEX -> bought ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} tokens`,
                     txHash: entry.buyTx,
                     amountETH: entry.claimedETH,
                     amountToken: Math.round(entry.burnedJEV),
                     status: 'success',
-                    contractTarget: 'Curve.buy()'
+                    contractTarget: 'DEX.buy()'
                   });
                 }
               }
