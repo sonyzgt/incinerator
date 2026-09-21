@@ -247,11 +247,13 @@ export function App() {
             </div>
 
             {/* Right Column: 3D Interactive Robot from Spline */}
-            <div className="lg:col-span-6 w-full h-[460px] sm:h-[540px] lg:h-[620px] xl:h-[680px] relative flex items-center justify-center pointer-events-auto">
+            <div className="lg:col-span-6 w-full h-[520px] sm:h-[600px] lg:h-[700px] xl:h-[760px] relative flex items-end justify-center pointer-events-auto translate-y-6 sm:translate-y-10 lg:translate-y-16">
               <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
               />
+              {/* Seamless atmospheric fade to completely eliminate bottom cut-off */}
+              <div className="absolute -bottom-1 inset-x-0 h-24 sm:h-36 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/80 to-transparent pointer-events-none z-10" />
             </div>
 
           </div>
