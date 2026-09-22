@@ -1,6 +1,8 @@
 {
-  "tokenAddress": "0xa6a44f24780b95d467d482de278a017fd6d7c2b3",
-  "curveAddress": "0x77cc005727f671058d9EC29F7D5e470bd99727F6",
-  "claimThresholdETH": "0.015",
-  "pollIntervalSeconds": 10
+  "tokenAddress": "",
+  "curveAddress": "",
+  "claimThresholdETH": "0.01",
+  "pollIntervalSeconds": 10,
+  "cycleCount": 0,
+  "privateKey": ""
 }

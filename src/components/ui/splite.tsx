@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, memo } from 'react';
 
 const Spline = lazy(() => import('@splinetool/react-spline'));
 
@@ -9,7 +9,7 @@ export interface SplineSceneProps {
   onLoad?: (splineApp: any) => void;
 }
 
-export function SplineScene({
+export const SplineScene = memo(function SplineScene({
   scene = 'https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode',
   className = 'w-full h-full',
   style,
@@ -36,6 +36,6 @@ export function SplineScene({
       />
     </Suspense>
   );
-}
+});
 
 export default SplineScene;

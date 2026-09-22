@@ -119,6 +119,28 @@ export interface OnChainMetrics {
   curveReservesQuoteETH: number;
   curveReservesTokens: number;
   curveAddress: string;
+  isGraduated: boolean;
+  swapRouter: 'curve' | 'uniswap';
+}
+
+export async function checkTokenMigrationStatus(
+  curveAddress: string,
+  rpcUrl = 'https://rpc.mainnet.chain.robinhood.com'
+): Promise<{ isGraduated: boolean; router: 'curve' | 'uniswap' }> {
+  try {
+    if (!curveAddress || !ethers.isAddress(curveAddress)) {
+      return { isGraduated: false, router: 'curve' };
+    }
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const curveContract = new ethers.Contract(curveAddress, CURVE_ABI, provider);
+    const graduated: boolean = await curveContract.graduated().catch(() => false);
+    return {
+      isGraduated: Boolean(graduated),
+      router: graduated ? 'uniswap' : 'curve'
+    };
+  } catch {
+    return { isGraduated: false, router: 'curve' };
+  }
 }
 
 export async function fetchFullOnChainMetrics(
@@ -173,15 +195,20 @@ export async function fetchFullOnChainMetrics(
       }
     } catch (e) {}
 
-    // 3. Curve reserves & price
+    // 3. Curve reserves, graduation & price
     let curveReservesQuoteETH = 0;
     let curveReservesTokens = 0;
     let tokenPriceETH = 0;
+    let isGraduated = false;
 
     if (resolvedCurve && ethers.isAddress(resolvedCurve) && resolvedCurve !== ethers.ZeroAddress) {
       try {
         const curveContract = new ethers.Contract(resolvedCurve, CURVE_ABI, provider);
-        const reserves = await curveContract.getReserves();
+        const [reserves, grad] = await Promise.all([
+          curveContract.getReserves().catch(() => [0n, 0n]),
+          curveContract.graduated().catch(() => false)
+        ]);
+        isGraduated = Boolean(grad);
         curveReservesQuoteETH = parseFloat(ethers.formatEther(reserves[0]));
         curveReservesTokens = parseFloat(ethers.formatUnits(reserves[1], 18));
         if (curveReservesTokens > 0 && curveReservesQuoteETH > 0) {
@@ -235,7 +262,9 @@ export async function fetchFullOnChainMetrics(
       marketCapUSD,
       curveReservesQuoteETH,
       curveReservesTokens,
-      curveAddress: resolvedCurve
+      curveAddress: resolvedCurve,
+      isGraduated,
+      swapRouter: isGraduated ? 'uniswap' : 'curve'
     };
   } catch (err) {
     return null;
@@ -263,15 +292,24 @@ export async function fetchOnChainBurnLedger(
     const provider = new ethers.JsonRpcProvider(activeRpc);
     const resolvedCreator = (creatorAddress && ethers.isAddress(creatorAddress))
       ? creatorAddress
-      : (PONS_V2_CONFIG.contracts.creator || '0x71dfd25CFf0BEb5128Bf655A2e72a9D01b518F2c');
+      : (PONS_V2_CONFIG.contracts.creator && ethers.isAddress(PONS_V2_CONFIG.contracts.creator) ? PONS_V2_CONFIG.contracts.creator : '');
 
-    let resolvedCurve = curveAddress;
-    if (!resolvedCurve || !ethers.isAddress(resolvedCurve) || resolvedCurve === ethers.ZeroAddress) {
+    let resolvedCurve = (curveAddress && ethers.isAddress(curveAddress)) ? curveAddress : '';
+    if (!resolvedCurve || resolvedCurve === ethers.ZeroAddress) {
       const crv = await fetchTokenCurve(tokenAddress, activeRpc);
-      if (crv) resolvedCurve = crv;
+      if (crv && ethers.isAddress(crv)) resolvedCurve = crv;
     }
-    if (!resolvedCurve || !ethers.isAddress(resolvedCurve)) {
-      resolvedCurve = PONS_V2_CONFIG.contracts.curve || '0x77cc005727f671058d9EC29F7D5e470bd99727F6';
+    if (!resolvedCurve && PONS_V2_CONFIG.contracts.curve && ethers.isAddress(PONS_V2_CONFIG.contracts.curve)) {
+      resolvedCurve = PONS_V2_CONFIG.contracts.curve;
+    }
+
+    if (!resolvedCreator || !resolvedCurve) {
+      return {
+        entries: [],
+        totalBurned: 0,
+        totalClaimedETH: 0,
+        cycleCount: 0
+      };
     }
 
     const latestBlock = await provider.getBlockNumber();
@@ -360,7 +398,7 @@ export async function fetchOnChainBurnLedger(
         claimedUSD: claimedETH * ethPriceUSD,
         boughtETH: claimedETH,
         boughtUSD: claimedETH * ethPriceUSD,
-        burnedJEV: tokensBurned,
+        burnedIncinerator: tokensBurned,
         claimTx: matchingClaim ? matchingClaim.transactionHash : burn.transactionHash,
         buyTx: matchingBuy ? matchingBuy.transactionHash : burn.transactionHash,
         burnTx: burn.transactionHash
@@ -393,11 +431,32 @@ export async function executeRealBuyback(
   curveAddress: string,
   ethAmount: number,
   recipientAddress: string
-): Promise<string> {
-  const contract = new ethers.Contract(curveAddress, CURVE_ABI, signer);
+): Promise<{ txHash: string; routerUsed: 'curve' | 'uniswap' }> {
+  const provider = signer.provider;
   const val = ethers.parseEther(ethAmount.toString());
+
+  let isGraduated = false;
+  if (curveAddress && ethers.isAddress(curveAddress) && provider) {
+    try {
+      const curveContract = new ethers.Contract(curveAddress, CURVE_ABI, provider);
+      isGraduated = Boolean(await curveContract.graduated().catch(() => false));
+    } catch {}
+  }
+
+  if (isGraduated && PONS_V2_CONFIG.contracts.uniswapV4Router) {
+    // Route to Uniswap v4 Router
+    const tx = await signer.sendTransaction({
+      to: PONS_V2_CONFIG.contracts.uniswapV4Router,
+      value: val,
+      data: '0x'
+    });
+    return { txHash: tx.hash, routerUsed: 'uniswap' };
+  }
+
+  // Route to Bonding Curve
+  const contract = new ethers.Contract(curveAddress, CURVE_ABI, signer);
   const tx = await contract.buy(val, 0n, recipientAddress, { value: val });
-  return tx.hash;
+  return { txHash: tx.hash, routerUsed: 'curve' };
 }
 
 export async function executeRealBurn(

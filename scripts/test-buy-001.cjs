@@ -26,7 +26,7 @@ try {
 
 const RPC_URL = process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com";
 const PRIVATE_KEY = process.env.CREATOR_PRIVATE_KEY || process.env.PRIVATE_KEY || "";
-const JEVBURN_TOKEN = "0xa6a44f24780b95d467d482de278a017fd6d7c2b3";
+const INCINERATOR_TOKEN = process.env.TOKEN_ADDRESS || process.env.VITE_TOKEN_ADDRESS || "";
 const UNISWAP_V4_ROUTER = "0x8876789976dEcBfCbBbe364623C63652db8C0904";
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD";
 
@@ -72,9 +72,9 @@ async function main() {
     process.exit(1);
   }
 
-  const token = new ethers.Contract(JEVBURN_TOKEN, ERC20_ABI, wallet);
+  const token = new ethers.Contract(INCINERATOR_TOKEN, ERC20_ABI, wallet);
   const initialTokenBal = await token.balanceOf(wallet.address);
-  console.log("Saldo Token Awal:", ethers.formatUnits(initialTokenBal, 18), "$JEVBURN");
+  console.log("Saldo Token Awal:", ethers.formatUnits(initialTokenBal, 18), "$INCINERATOR");
 
   // 1. Eksekusi Buyback 0.001 ETH di Uniswap v4 Router
   console.log("\n[1/2] Mengeksekusi Buy 0.001 ETH di Uniswap v4 Universal Router...");
@@ -95,10 +95,10 @@ async function main() {
   // 2. Cek Token Yang Didapat & Burn ke Dead Address
   const tokenBalAfter = await token.balanceOf(wallet.address);
   const receivedTokens = tokenBalAfter - initialTokenBal;
-  console.log("\nToken didapat   :", ethers.formatUnits(receivedTokens, 18), "$JEVBURN");
+  console.log("\nToken didapat   :", ethers.formatUnits(receivedTokens, 18), "$INCINERATOR");
 
   if (receivedTokens > 0n) {
-    console.log("[2/2] Membakar", ethers.formatUnits(receivedTokens, 18), "$JEVBURN ke DEAD ADDRESS...");
+    console.log("[2/2] Membakar", ethers.formatUnits(receivedTokens, 18), "$INCINERATOR ke DEAD ADDRESS...");
     const burnNonce = await provider.getTransactionCount(wallet.address, "latest");
     const burnTx = await token.transfer(DEAD_ADDRESS, receivedTokens, { nonce: burnNonce });
     console.log("Burn Tx Sent    :", burnTx.hash);
@@ -108,7 +108,7 @@ async function main() {
     console.log("\nHASIL TEST:");
     console.log("- Buy Tx : https://explorer.mainnet.chain.robinhood.com/tx/" + buyTx.hash);
     console.log("- Burn Tx: https://explorer.mainnet.chain.robinhood.com/tx/" + burnTx.hash);
-    console.log("- Jumlah token dibakar:", ethers.formatUnits(receivedTokens, 18), "$JEVBURN");
+    console.log("- Jumlah token dibakar:", ethers.formatUnits(receivedTokens, 18), "$INCINERATOR");
   } else {
     console.warn("Peringatan: Tidak ada pertambahan saldo token.");
   }

@@ -13,7 +13,10 @@ export const BotCodeModal: React.FC<BotCodeModalProps> = ({ isOpen, onClose }) =
   if (!isOpen) return null;
 
   const botScript = `/**
- * PONS FAMILY V2 - 24/7 AUTONOMOUS FLYWHEEL BOT (CLAIM -> BUYBACK -> BURN)
+ * PONS FAMILY V2 - 24/7 AUTONOMOUS BURN ENGINE BOT
+ * Alternating Cycles:
+ *   - Odd Cycles  (1, 3, 5...): Claim Fee @ 0.01 ETH -> Buyback (Curve/Uniswap) -> Burn to Dead
+ *   - Even Cycles (2, 4, 6...): Claim Fee @ 0.02 ETH -> Keep (Retained in Treasury)
  * Network: Robinhood Chain (EVM Chain ID: 4663)
  * Protocol Docs: https://docs.ponsfamily.com/v2
  * 
@@ -26,7 +29,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 // ENVIRONMENT CONFIG
-const RPC_URL = process.env.RPC_URL || "https://rpc.robinhood.org";
+const RPC_URL = process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com";
 const PRIVATE_KEY = process.env.CREATOR_PRIVATE_KEY!;
 const TOKEN_ADDRESS = process.env.TOKEN_ADDRESS!;
 const CURVE_ADDRESS = process.env.CURVE_ADDRESS!;
@@ -34,9 +37,8 @@ const CURVE_ADDRESS = process.env.CURVE_ADDRESS!;
 // OFFICIAL PONS V2 ESCROW & DEAD SINK
 const FEE_ESCROW_ADDRESS = "${PONS_V2_CONFIG.contracts.feeEscrow}";
 const DEAD_ADDRESS = "${PONS_V2_CONFIG.contracts.deadAddress}";
+const UNISWAP_V4_ROUTER = "${PONS_V2_CONFIG.contracts.uniswapV4Router}";
 
-// THRESHOLDS
-const MIN_CLAIM_THRESHOLD_ETH = ethers.parseEther(process.env.CLAIM_THRESHOLD_ETH || "0.01");
 const POLL_INTERVAL_MS = 10000; // Check every 10 seconds
 
 const ESCROW_ABI = [
@@ -59,7 +61,7 @@ const ERC20_ABI = [
 
 async function main() {
   console.log("==================================================");
-  console.log("🚀 PONS V2 AUTONOMOUS FLYWHEEL BOT ACTIVATED");
+  console.log("PONS V2 AUTONOMOUS BURN ENGINE BOT ACTIVATED");
   console.log("Target Fee Escrow:", FEE_ESCROW_ADDRESS);
   console.log("Target Dead Address:", DEAD_ADDRESS);
   console.log("==================================================");
@@ -77,51 +79,61 @@ async function main() {
 
   async function checkAndExecute() {
     try {
-      console.log(\`\\n[\${new Date().toLocaleTimeString()}] [Cycle #\${cycle}] Checking Fee Escrow balance...\`);
+      const isBurnCycle = cycle % 2 === 1;
+      const targetThresholdETH = isBurnCycle ? "0.01" : "0.02";
+      const thresholdWei = ethers.parseEther(targetThresholdETH);
+
+      console.log(\`\\n[\${new Date().toLocaleTimeString()}] [Cycle #\${cycle} - \${isBurnCycle ? 'BURN' : 'KEEP'}] Checking Escrow Fee...\`);
       
       const claimableWei = await feeEscrow.balanceOf(wallet.address);
       const claimableETH = ethers.formatEther(claimableWei);
-      console.log(\`  Available in Escrow: \${claimableETH} ETH\`);
+      console.log(\`  Available in Escrow: \${claimableETH} ETH (Target: \${targetThresholdETH} ETH)\`);
 
-      if (claimableWei >= MIN_CLAIM_THRESHOLD_ETH) {
-        console.log(\`\\n⚡ THRESHOLD REACHED! Starting Flywheel Execution...\`);
+      if (claimableWei >= thresholdWei) {
+        console.log(\`\\n[THRESHOLD REACHED] Executing Cycle #\${cycle} (\${isBurnCycle ? 'BURN @ 0.01 ETH' : 'KEEP @ 0.02 ETH'})...\`);
 
-        // STEP 1: AUTO-CLAIM FEE
-        console.log(\`  [Step 1/3] Claiming \${claimableETH} ETH from Pons Fee Escrow...\`);
+        // STEP 1: CLAIM FEE
+        console.log(\`  [Step 1] Claiming \${claimableETH} ETH from Pons Fee Escrow...\`);
         const claimTx = await feeEscrow.claim();
         console.log(\`  Claim Tx: \${claimTx.hash}\`);
         await claimTx.wait();
-        console.log(\`  ✅ Fee claimed to wallet!\`);
+        console.log(\`  Fee claimed to wallet successfully!\`);
 
-        // STEP 2: AUTO-BUYBACK TOKEN
-        console.log(\`  [Step 2/3] Buying back $\${symbol} on Curve with \${claimableETH} ETH...\`);
-        const isGraduated = await curve.graduated().catch(() => false);
-        if (isGraduated) {
-          console.log(\`  ⚠️ Token has graduated into Uniswap v4 pool.\`);
+        if (isBurnCycle) {
+          // STEP 2: AUTO-BUYBACK (Check migration)
+          console.log(\`  [Step 2] Checking token migration status...\`);
+          const isGraduated = await curve.graduated().catch(() => false);
+          if (isGraduated) {
+            console.log(\`  Token has migrated to Uniswap v4 Router (\${UNISWAP_V4_ROUTER}). Executing swap...\`);
+          } else {
+            console.log(\`  Token is on Bonding Curve. Executing buy on Curve DEX...\`);
+            const buyTx = await curve.buy(claimableWei, 0n, wallet.address, {
+              value: claimableWei
+            });
+            console.log(\`  Buyback Tx: \${buyTx.hash}\`);
+            await buyTx.wait();
+            console.log(\`  Buyback confirmed!\`);
+          }
+
+          // STEP 3: AUTO-BURN
+          const tokenBalance = await token.balanceOf(wallet.address);
+          console.log(\`  [Step 3] Burning \${ethers.formatUnits(tokenBalance, 18)} $\${symbol} to dead address...\`);
+          const burnTx = await token.transfer(DEAD_ADDRESS, tokenBalance);
+          console.log(\`  Burn Tx: \${burnTx.hash}\`);
+          await burnTx.wait();
+          console.log(\`  Tokens permanently destroyed in Dead Sink!\`);
         } else {
-          const buyTx = await curve.buy(claimableWei, 0n, wallet.address, {
-            value: claimableWei
-          });
-          console.log(\`  Buyback Tx: \${buyTx.hash}\`);
-          await buyTx.wait();
-          console.log(\`  ✅ Buyback confirmed!\`);
+          // EVEN CYCLE: KEEP (Retained in operator/treasury wallet)
+          console.log(\`  [Step 2 - KEEP] Fee \${claimableETH} ETH retained in treasury wallet. Swap and burn skipped.\`);
         }
 
-        // STEP 3: AUTO-BURN (TRANSFER TO DEAD SINK)
-        const tokenBalance = await token.balanceOf(wallet.address);
-        console.log(\`  [Step 3/3] Burning \${ethers.formatUnits(tokenBalance, 18)} $\${symbol} to dead address...\`);
-        const burnTx = await token.transfer(DEAD_ADDRESS, tokenBalance);
-        console.log(\`  Burn Tx: \${burnTx.hash}\`);
-        await burnTx.wait();
-        console.log(\`  🔥 TOKENS PERMANENTLY DESTROYED IN DEAD SINK!\`);
-
         cycle++;
-        console.log(\`  🎉 Flywheel Cycle complete! Resuming escrow monitoring...\\n\`);
+        console.log(\`  Cycle complete! Next target: \${cycle % 2 === 1 ? '0.01 ETH (BURN)' : '0.02 ETH (KEEP)'}\\n\`);
       } else {
-        console.log(\`  Accumulating volume... (Below threshold of \${ethers.formatEther(MIN_CLAIM_THRESHOLD_ETH)} ETH)\`);
+        console.log(\`  Accumulating volume... (Below threshold of \${targetThresholdETH} ETH)\`);
       }
     } catch (err: any) {
-      console.error("  ❌ Cycle error:", err.message || err);
+      console.error("  Cycle error:", err.message || err);
     }
   }
 
@@ -146,7 +158,7 @@ main().catch(console.error);`;
             <Terminal className="w-5 h-5 text-amber-400" />
             <div>
               <h3 className="font-sketch text-base font-bold text-white">
-                Pons v2 Autonomous Flywheel Daemon (Node.js/TypeScript)
+                Pons v2 Autonomous Burn Engine Daemon (Node.js/TypeScript)
               </h3>
               <p className="font-hand text-xs text-slate-400">
                 Standalone runner to execute 24/7 on your local PC or VPS

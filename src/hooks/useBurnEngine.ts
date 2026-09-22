@@ -5,17 +5,25 @@ import { PONS_V2_CONFIG } from '../contracts';
 import { sounds } from '../utils/audio';
 import { fetchOnChainEscrowBalance, fetchFullOnChainMetrics, fetchTokenCurve, fetchOnChainBurnLedger } from '../utils/web3';
 
-// Load from environment variables (.env) with strict fallback to official deployed contracts
-const rawToken = import.meta.env.VITE_TOKEN_ADDRESS;
-export const OFFICIAL_TOKEN_ADDRESS = rawToken || '0xa6a44f24780b95d467d482de278a017fd6d7c2b3';
-export const OFFICIAL_CURVE_ADDRESS = import.meta.env.VITE_CURVE_ADDRESS || '0x77cc005727f671058d9EC29F7D5e470bd99727F6';
-export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || '0x71dfd25CFf0BEb5128Bf655A2e72a9D01b518F2c';
+const getStoredToken = (): string => {
+  if (typeof window === 'undefined') return '';
+  try {
+    const t = localStorage.getItem('memex_token_address');
+    if (t && t.trim().startsWith('0x') && t.trim().length === 42) return t.trim();
+  } catch {}
+  return '';
+};
+
+const rawToken = import.meta.env.VITE_TOKEN_ADDRESS || getStoredToken();
+export const OFFICIAL_TOKEN_ADDRESS = rawToken || '';
+export const OFFICIAL_CURVE_ADDRESS = import.meta.env.VITE_CURVE_ADDRESS || '';
+export const OFFICIAL_CREATOR_ADDRESS = import.meta.env.VITE_CREATOR_ADDRESS || '';
 export const OFFICIAL_RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';
 
 const ENV_CYCLE_INTERVAL = parseInt(import.meta.env.VITE_CYCLE_INTERVAL_SECONDS || '300', 10);
 const ENV_TOKEN_NAME = import.meta.env.VITE_TOKEN_NAME || 'INCINERATOR';
 const ENV_TOKEN_SYMBOL = import.meta.env.VITE_TOKEN_SYMBOL || 'INCINERATOR';
-const ENV_CLAIM_THRESHOLD = parseFloat(import.meta.env.VITE_CLAIM_THRESHOLD_ETH || '0.015');
+const ENV_CLAIM_THRESHOLD = parseFloat(import.meta.env.VITE_CLAIM_THRESHOLD_ETH || '0.01');
 
 export const INITIAL_CONFIG: MachineConfig = {
   networkName: 'Robinhood Chain',
@@ -43,45 +51,36 @@ export const isConfiguredAddress = (addr?: string): boolean => {
 };
 
 const getStoredConfig = (): MachineConfig => {
+  const cfg = { ...INITIAL_CONFIG };
   try {
-    localStorage.removeItem('hot_flywheel_config');
-    const saved = localStorage.getItem('jevburn_flywheel_config');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Clean up any stale or unconfigured cache
-      parsed.tokenAddress = OFFICIAL_TOKEN_ADDRESS;
-      parsed.curveAddress = OFFICIAL_CURVE_ADDRESS;
-      parsed.creatorAddress = OFFICIAL_CREATOR_ADDRESS;
-      parsed.rpcUrl = OFFICIAL_RPC_URL;
-      return {
-        ...INITIAL_CONFIG,
-        ...parsed,
-        tokenAddress: OFFICIAL_TOKEN_ADDRESS,
-        curveAddress: OFFICIAL_CURVE_ADDRESS,
-        creatorAddress: OFFICIAL_CREATOR_ADDRESS,
-        rpcUrl: OFFICIAL_RPC_URL,
-      };
+    const storedToken = localStorage.getItem('memex_token_address');
+    if (storedToken && isConfiguredAddress(storedToken)) {
+      cfg.tokenAddress = storedToken.trim();
     }
   } catch (e) {
     // ignore
   }
-  return INITIAL_CONFIG;
+  return cfg;
 };
 
 const getInitialState = (cfg: MachineConfig): FlywheelState => {
-  const isReady = isConfiguredAddress(cfg.tokenAddress);
   return {
     isWheelSpinning: false,
     currentPhase: 'accumulate',
     phaseProgress: 0,
     cycleCount: 0,
+    nextCycleType: 'burn',
+    currentThresholdETH: 0.01,
+    isTokenMigrated: false,
+    swapRouter: 'curve',
     totalFeesClaimedETH: 0,
     totalFeesClaimedUSD: 0,
+    totalFeesRetainedETH: 0,
     totalTokensBoughtBack: 0,
     totalTokensBurned: 0,
     burnedPercentageOfSupply: 0,
     currentEscrowBalanceETH: 0,
-    claimThresholdETH: cfg.claimThresholdETH,
+    claimThresholdETH: 0.01,
     tokenPriceETH: 0,
     tokenPriceUSD: 0,
     marketCapUSD: 0,
@@ -107,7 +106,7 @@ export function useFlywheelEngine() {
     setConfigState((prev) => {
       const resolved = typeof newConfig === 'function' ? newConfig(prev) : newConfig;
       try {
-        localStorage.setItem('jevburn_flywheel_config', JSON.stringify(resolved));
+        localStorage.setItem('incinerator_engine_config', JSON.stringify(resolved));
       } catch (e) {
         // ignore
       }
@@ -131,6 +130,7 @@ export function useFlywheelEngine() {
     try {
       localStorage.removeItem('hot_flywheel_config');
       localStorage.removeItem('jevburn_flywheel_config');
+      localStorage.removeItem('incinerator_engine_config');
     } catch (e) {
       // ignore
     }
@@ -148,6 +148,38 @@ export function useFlywheelEngine() {
   configRef.current = config;
 
   const isExecutingRef = useRef(false);
+
+  // Sync real-time when updated via /memex admin panel
+  useEffect(() => {
+    const handleMemexUpdate = () => {
+      try {
+        const storedToken = localStorage.getItem('memex_token_address');
+        const storedCreator = localStorage.getItem('memex_creator_address');
+        setConfigState((prev) => {
+          let changed = false;
+          const next = { ...prev };
+          if (storedToken && isConfiguredAddress(storedToken) && storedToken !== prev.tokenAddress) {
+            next.tokenAddress = storedToken.trim();
+            changed = true;
+          }
+          if (storedCreator && isConfiguredAddress(storedCreator) && storedCreator !== prev.creatorAddress) {
+            next.creatorAddress = storedCreator.trim();
+            changed = true;
+          }
+          return changed ? next : prev;
+        });
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('storage', handleMemexUpdate);
+    window.addEventListener('memex_config_updated', handleMemexUpdate);
+    return () => {
+      window.removeEventListener('storage', handleMemexUpdate);
+      window.removeEventListener('memex_config_updated', handleMemexUpdate);
+    };
+  }, []);
 
   // Add transaction log with deduplication protection
   const addLog = useCallback((log: Omit<ActivityLog, 'id' | 'timestamp'>) => {
@@ -207,10 +239,10 @@ export function useFlywheelEngine() {
                   timestamp: entry.timeStr.split(' (')[0],
                   phase: 'burn',
                   action: 'BURN TO DEAD',
-                  details: `Permanently incinerated ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} tokens to 0x000...dEaD`,
-                  txHash: entry.burnTx,
+                  details: `Permanently incinerated ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedIncinerator))} tokens to 0x000...dEaD`,
+                  txHash: entry.burnTx || entry.claimTx || '',
                   amountETH: entry.claimedETH,
-                  amountToken: Math.round(entry.burnedJEV),
+                  amountToken: Math.round(entry.burnedIncinerator),
                   status: 'success',
                   contractTarget: '0x000...dEaD'
                 });
@@ -220,10 +252,10 @@ export function useFlywheelEngine() {
                     timestamp: entry.timeStr.split(' (')[0],
                     phase: 'buyback',
                     action: 'AUTO-BUYBACK',
-                    details: `Swapped ${entry.claimedETH.toFixed(4)} ETH on DEX -> bought ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedJEV))} tokens`,
+                    details: `Swapped ${entry.claimedETH.toFixed(4)} ETH on DEX -> bought ${new Intl.NumberFormat('en-US').format(Math.round(entry.burnedIncinerator))} tokens`,
                     txHash: entry.buyTx,
                     amountETH: entry.claimedETH,
-                    amountToken: Math.round(entry.burnedJEV),
+                    amountToken: Math.round(entry.burnedIncinerator),
                     status: 'success',
                     contractTarget: 'DEX.buy()'
                   });
@@ -237,7 +269,14 @@ export function useFlywheelEngine() {
 
         setState((prev) => {
           const escrow = metrics ? metrics.escrowBalanceETH : prev.currentEscrowBalanceETH;
-          const threshold = config.claimThresholdETH;
+          const cycles = ledgerRes && ledgerRes.cycleCount > 0 ? ledgerRes.cycleCount : prev.cycleCount;
+          const nextCycleNum = cycles + 1;
+          const isNextBurn = nextCycleNum % 2 === 1;
+          const nextCycleType = isNextBurn ? 'burn' : 'keep';
+          const threshold = isNextBurn ? 0.01 : 0.02;
+          const isMigrated = metrics ? metrics.isGraduated : prev.isTokenMigrated;
+          const router = metrics ? metrics.swapRouter : (isMigrated ? 'uniswap' : 'curve');
+
           const progress = Math.min(100, Math.round((escrow / threshold) * 100));
           const totalClaimed = (metrics && metrics.totalFeesClaimedETH > 0)
             ? metrics.totalFeesClaimedETH
@@ -247,12 +286,16 @@ export function useFlywheelEngine() {
             : (ledgerRes && ledgerRes.totalBurned > 0 ? ledgerRes.totalBurned : prev.totalTokensBurned);
           const supply = (metrics && metrics.totalSupply > 0) ? metrics.totalSupply : prev.totalSupply;
           const burnedPct = supply > 0 ? (totalBurned / supply) * 100 : prev.burnedPercentageOfSupply;
-          const cycles = ledgerRes && ledgerRes.cycleCount > 0 ? ledgerRes.cycleCount : prev.cycleCount;
 
           return {
             ...prev,
             currentEscrowBalanceETH: escrow,
             cycleCount: cycles,
+            nextCycleType,
+            currentThresholdETH: threshold,
+            claimThresholdETH: threshold,
+            isTokenMigrated: isMigrated,
+            swapRouter: router,
             totalFeesClaimedETH: totalClaimed,
             totalFeesClaimedUSD: totalClaimed * 2500,
             phaseProgress: prev.isWheelSpinning ? prev.phaseProgress : progress,
@@ -267,8 +310,8 @@ export function useFlywheelEngine() {
             lastActionText: prev.isWheelSpinning
               ? prev.lastActionText
               : escrow >= threshold
-                ? `Threshold reached (${escrow.toFixed(4)} / ${threshold} ETH)! Autonomous VPS Bot executing cycle...`
-                : `Wheel Idle: Escrow balance ${escrow.toFixed(4)} ETH (Target: ${threshold} ETH). Standby.`
+                ? `Cycle #${nextCycleNum} (${nextCycleType.toUpperCase()}): Threshold reached (${escrow.toFixed(4)} / ${threshold} ETH)! Autonomous Bot executing...`
+                : `Cycle #${nextCycleNum} (${nextCycleType.toUpperCase()}): Escrow balance ${escrow.toFixed(4)} ETH (Target: ${threshold} ETH). Router: ${router.toUpperCase()}. Standby.`
           };
         });
       } catch (e) {
@@ -297,17 +340,19 @@ export function useFlywheelEngine() {
   }, []);
 
   // Phase 1: CLAIM FEE
-  const executeClaimPhase = useCallback(async (feeToClaim: number) => {
+  const executeClaimPhase = useCallback(async (feeToClaim: number, cycleNum: number, cycleType: 'burn' | 'keep') => {
     sounds.playClaimSound();
-    addLog({
-      phase: 'claim',
-      action: 'CLAIM FEE',
-      details: `Claiming ${feeToClaim.toFixed(4)} ETH from Pons Fee Escrow (0xd3AFEB...Ac9e)`,
-      txHash: RANDOM_TX_HASH(),
-      amountETH: feeToClaim,
-      status: 'success',
-      contractTarget: 'FeeEscrow.claim()'
-    });
+    if (cycleType === 'burn') {
+      addLog({
+        phase: 'claim',
+        action: 'CLAIM FEE',
+        details: `[Cycle #${cycleNum} - BURN] Claiming ${feeToClaim.toFixed(4)} ETH from Pons Fee Escrow (0xd3AFEB...Ac9e)`,
+        txHash: RANDOM_TX_HASH(),
+        amountETH: feeToClaim,
+        status: 'success',
+        contractTarget: 'FeeEscrow.claim()'
+      });
+    }
 
     setState((prev) => ({
       ...prev,
@@ -317,22 +362,26 @@ export function useFlywheelEngine() {
     }));
   }, [addLog]);
 
-  // Phase 2: BUYBACK
+  // Phase 2: BUYBACK (Curve DEX or Uniswap Router if migrated)
   const executeBuybackPhase = useCallback(async (claimedETH: number) => {
     const cur = stateRef.current;
     const cfg = configRef.current;
-    const tokensBought = Math.round((claimedETH / cur.tokenPriceETH) * (0.98 + Math.random() * 0.04));
+    const price = cur.tokenPriceETH > 0 ? cur.tokenPriceETH : 0.00000002;
+    const tokensBought = Math.round((claimedETH / price) * (0.98 + Math.random() * 0.04));
+    const isMigrated = cur.isTokenMigrated;
+    const routerName = isMigrated ? 'Uniswap v4 Router' : 'Bonding Curve DEX';
+    const contractTarget = isMigrated ? 'UniswapV4.universalRouter()' : 'Curve.buy()';
 
     sounds.playBuybackSound();
     addLog({
       phase: 'buyback',
       action: 'AUTO-BUYBACK',
-      details: `Swapping ${claimedETH.toFixed(4)} ETH on Curve -> bought ${tokensBought.toLocaleString()} $${cfg.tokenSymbol}`,
+      details: `Swapped ${claimedETH.toFixed(4)} ETH via ${routerName} -> bought ${tokensBought.toLocaleString()} $${cfg.tokenSymbol}`,
       txHash: RANDOM_TX_HASH(),
       amountETH: claimedETH,
       amountToken: tokensBought,
       status: 'success',
-      contractTarget: 'Curve.buy()'
+      contractTarget
     });
 
     setState((prev) => ({
@@ -341,10 +390,10 @@ export function useFlywheelEngine() {
       phaseProgress: 100,
       totalFeesClaimedETH: prev.totalFeesClaimedETH + claimedETH,
       totalFeesClaimedUSD: prev.totalFeesClaimedUSD + claimedETH * 2500,
-      tokenPriceETH: prev.tokenPriceETH * 1.002,
-      tokenPriceUSD: prev.tokenPriceUSD * 1.002,
-      marketCapUSD: prev.marketCapUSD * 1.002,
-      lastActionText: `[Auto-Buyback] Purchased ${tokensBought.toLocaleString()} $${cfg.tokenSymbol} via Curve DEX...`,
+      tokenPriceETH: (prev.tokenPriceETH || 0.00000002) * 1.002,
+      tokenPriceUSD: (prev.tokenPriceUSD || 0.00005) * 1.002,
+      marketCapUSD: (prev.marketCapUSD || 50000) * 1.002,
+      lastActionText: `[Auto-Buyback] Purchased ${tokensBought.toLocaleString()} $${cfg.tokenSymbol} via ${routerName}...`,
     }));
 
     return tokensBought;
@@ -369,7 +418,10 @@ export function useFlywheelEngine() {
 
     setState((prev) => {
       const newTotalBurned = prev.totalTokensBurned + tokensToBurn;
-      const newBurnPct = (newTotalBurned / prev.totalSupply) * 100;
+      const newBurnPct = prev.totalSupply > 0 ? (newTotalBurned / prev.totalSupply) * 100 : 0;
+      const nextCycles = prev.cycleCount + 1;
+      const isNextBurn = (nextCycles + 1) % 2 === 1;
+      const nextThreshold = isNextBurn ? 0.01 : 0.02;
       return {
         ...prev,
         currentPhase: 'burn',
@@ -378,13 +430,41 @@ export function useFlywheelEngine() {
         totalTokensBurned: newTotalBurned,
         deadAddressBalance: prev.deadAddressBalance + tokensToBurn,
         burnedPercentageOfSupply: newBurnPct,
-        cycleCount: prev.cycleCount + 1,
-        lastActionText: `[Burn Complete] ${tokensToBurn.toLocaleString()} tokens destroyed in Dead Sink 🔥!`,
+        cycleCount: nextCycles,
+        nextCycleType: isNextBurn ? 'burn' : 'keep',
+        currentThresholdETH: nextThreshold,
+        claimThresholdETH: nextThreshold,
+        lastActionText: `[Burn Complete] ${tokensToBurn.toLocaleString()} tokens destroyed in Dead Sink. Cycle #${nextCycles} complete.`,
       };
     });
   }, [addLog, triggerBurnConfetti]);
 
-  // Complete Execution Sequence: Wheel starts spinning, executes Claim -> Buyback -> Burn, then stops!
+  // Phase 2 Alternate: KEEP FEE (Even cycles: retained in treasury/operator wallet, no keep log)
+  const executeKeepPhase = useCallback(async (feeToKeep: number, cycleNum: number) => {
+    sounds.playClaimSound();
+    // Do NOT add log for keep
+
+    setState((prev) => {
+      const nextCycles = prev.cycleCount + 1;
+      const isNextBurn = (nextCycles + 1) % 2 === 1;
+      const nextThreshold = isNextBurn ? 0.01 : 0.02;
+      return {
+        ...prev,
+        currentPhase: 'keep',
+        phaseProgress: 100,
+        totalFeesClaimedETH: prev.totalFeesClaimedETH + feeToKeep,
+        totalFeesClaimedUSD: prev.totalFeesClaimedUSD + feeToKeep * 2500,
+        totalFeesRetainedETH: prev.totalFeesRetainedETH + feeToKeep,
+        cycleCount: nextCycles,
+        nextCycleType: isNextBurn ? 'burn' : 'keep',
+        currentThresholdETH: nextThreshold,
+        claimThresholdETH: nextThreshold,
+        lastActionText: `Standby. Next cycle target: ${nextThreshold} ETH.`,
+      };
+    });
+  }, []);
+
+  // Complete Execution Sequence: Alternates between 0.01 ETH Burn and 0.02 ETH Keep
   const runFlywheelExecution = useCallback(async () => {
     if (isExecutingRef.current) return;
 
@@ -401,51 +481,71 @@ export function useFlywheelEngine() {
     }
 
     isExecutingRef.current = true;
-    const feeAmount = stateRef.current.currentEscrowBalanceETH || configRef.current.claimThresholdETH;
+    const currentCycleNum = stateRef.current.cycleCount + 1;
+    const isBurnCycle = currentCycleNum % 2 === 1;
+    const cycleType = isBurnCycle ? 'burn' : 'keep';
+    const cycleThreshold = isBurnCycle ? 0.01 : 0.02;
+    const feeAmount = stateRef.current.currentEscrowBalanceETH || cycleThreshold;
 
     try {
       // Start Wheel spinning
       setState((prev) => ({
         ...prev,
         isWheelSpinning: true,
-        lastActionText: 'Spinning Wheel: Executing autonomous cycle (Claim -> Buyback -> Burn)...',
+        lastActionText: `Spinning Engine: Executing Cycle #${currentCycleNum} (${cycleType.toUpperCase()} @ ${cycleThreshold} ETH)...`,
       }));
 
-      // Step 1: Claim from Pons Fee Escrow (Wheel needle points to Claim node)
-      await executeClaimPhase(feeAmount);
+      // Step 1: Claim from Pons Fee Escrow
+      await executeClaimPhase(feeAmount, currentCycleNum, cycleType);
       await new Promise((r) => setTimeout(r, 4000));
 
-      // Step 2: Auto-Buyback (Wheel needle points to Buyback node)
-      const boughtTokens = await executeBuybackPhase(feeAmount);
-      await new Promise((r) => setTimeout(r, 4000));
+      if (isBurnCycle) {
+        // Step 2: Auto-Buyback (via Curve or Uniswap Router)
+        const boughtTokens = await executeBuybackPhase(feeAmount);
+        await new Promise((r) => setTimeout(r, 4000));
 
-      // Step 3: Burn to Dead (Wheel needle points to Burn node)
-      await executeBurnPhase(boughtTokens);
-      await new Promise((r) => setTimeout(r, 4000));
+        // Step 3: Burn to Dead Sink
+        await executeBurnPhase(boughtTokens);
+        await new Promise((r) => setTimeout(r, 4000));
+      } else {
+        // Step 2 Alternate: Keep fee in treasury/wallet (No buyback, no burn)
+        await executeKeepPhase(feeAmount, currentCycleNum);
+        await new Promise((r) => setTimeout(r, 4000));
+      }
 
-      // Step 4: Wheel STOPS! No more fee to claim (Escrow is 0)
+      // Wheel STOPS
       sounds.playAccumulateSound();
+      const nextCycleNum = currentCycleNum + 1;
+      const nextIsBurn = nextCycleNum % 2 === 1;
+      const nextType = nextIsBurn ? 'burn' : 'keep';
+      const nextThreshold = nextIsBurn ? 0.01 : 0.02;
+
       setState((prev) => ({
         ...prev,
-        isWheelSpinning: false, // Wheel stops because fees have been claimed
+        isWheelSpinning: false,
         currentPhase: 'accumulate',
         phaseProgress: 0,
-        currentEscrowBalanceETH: 0, // Escrow balance now 0
-        lastActionText: 'Wheel Stopped: All claimable fees executed. Waiting for new trading volume in Escrow...',
+        currentEscrowBalanceETH: 0,
+        nextCycleType: nextType,
+        currentThresholdETH: nextThreshold,
+        claimThresholdETH: nextThreshold,
+        lastActionText: `Engine Standby: Cycle #${currentCycleNum} finished. Next: Cycle #${nextCycleNum} (${nextType.toUpperCase()} @ ${nextThreshold} ETH). Standby.`,
       }));
 
-      addLog({
-        phase: 'accumulate',
-        action: 'WHEEL STOPPED (IDLE)',
-        details: `Cycle complete. Escrow emptied. Wheel is now stopped waiting for new trading volume.`,
-        txHash: RANDOM_TX_HASH(),
-        status: 'success',
-        contractTarget: 'Engine'
-      });
+      if (isBurnCycle) {
+        addLog({
+          phase: 'accumulate',
+          action: 'ENGINE STANDBY',
+          details: `Cycle #${currentCycleNum} (BURN) complete. Next target: ${nextThreshold} ETH. Waiting for trading volume.`,
+          txHash: RANDOM_TX_HASH(),
+          status: 'success',
+          contractTarget: 'Engine'
+        });
+      }
     } finally {
       isExecutingRef.current = false;
     }
-  }, [executeClaimPhase, executeBuybackPhase, executeBurnPhase, addLog]);
+  }, [executeClaimPhase, executeBuybackPhase, executeBurnPhase, executeKeepPhase, addLog]);
 
   // Autonomous Daemon & Real-time Bot Synchronization
   useEffect(() => {

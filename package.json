@@ -20,6 +20,7 @@
     "vite": "^8.3.0"
   },
   "dependencies": {
+    "@paper-design/shaders": "^0.0.81",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^2.0.55",
     "@types/three": "^0.186.0",
@@ -27,7 +28,9 @@
     "clsx": "^2.1.1",
     "dotenv": "^18.0.1",
     "ethers": "^6.17.0",
+    "framer-motion": "^13.4.0",
     "lucide-react": "^1.47.0",
+    "motion": "^13.4.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwind-merge": "^3.7.0",

@@ -1,17 +1,24 @@
-export type EnginePhase = 'accumulate' | 'claim' | 'buyback' | 'burn';
+export type EnginePhase = 'accumulate' | 'claim' | 'buyback' | 'burn' | 'keep';
+
+export type CycleType = 'burn' | 'keep';
 
 export interface FlywheelState {
-  isWheelSpinning: boolean; // True ONLY when executing Claim -> Buyback -> Burn, False when stopped waiting
+  isWheelSpinning: boolean;
   currentPhase: EnginePhase;
   phaseProgress: number; // 0 to 100%
   cycleCount: number;
+  nextCycleType: CycleType; // 'burn' (0.01 ETH) or 'keep' (0.02 ETH)
+  currentThresholdETH: number; // 0.01 on odd, 0.02 on even
+  isTokenMigrated: boolean; // whether graduated to Uniswap
+  swapRouter: 'curve' | 'uniswap';
   totalFeesClaimedETH: number;
   totalFeesClaimedUSD: number;
+  totalFeesRetainedETH: number;
   totalTokensBoughtBack: number;
   totalTokensBurned: number;
   burnedPercentageOfSupply: number;
-  currentEscrowBalanceETH: number; // Available fee waiting in Escrow
-  claimThresholdETH: number;       // Trigger threshold (e.g. 0.015 ETH)
+  currentEscrowBalanceETH: number;
+  claimThresholdETH: number;
   tokenPriceETH: number;
   tokenPriceUSD: number;
   marketCapUSD: number;
@@ -39,16 +46,19 @@ export interface ActivityLog {
 export interface BurnLedgerEntry {
   id: string;
   cycleNum: number;
+  cycleType?: CycleType; // 'burn' or 'keep'
   timeStr: string;
   timestamp: number;
   claimedETH: number;
   claimedUSD: number;
   boughtETH: number;
   boughtUSD: number;
-  burnedJEV: number;
+  retainedETH?: number;
+  burnedIncinerator: number;
   claimTx: string;
-  buyTx: string;
-  burnTx: string;
+  buyTx?: string;
+  burnTx?: string;
+  swapRouter?: 'curve' | 'uniswap';
 }
 
 export interface MachineConfig {
