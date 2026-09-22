@@ -63,15 +63,13 @@ if (fs.existsSync(CONFIG_FILE)) {
     if (saved.tokenAddress && saved.tokenAddress !== "") currentConfig.tokenAddress = saved.tokenAddress;
     if (saved.curveAddress && saved.curveAddress !== "") currentConfig.curveAddress = saved.curveAddress;
     if (saved.treasuryAddress && saved.treasuryAddress !== "") currentConfig.treasuryAddress = saved.treasuryAddress;
+    if (saved.privateKey && saved.privateKey !== "") currentConfig.privateKey = saved.privateKey;
     if (saved.claimThresholdETH) currentConfig.claimThresholdETH = saved.claimThresholdETH;
     if (saved.pollIntervalSeconds) currentConfig.pollIntervalSeconds = saved.pollIntervalSeconds;
-    if (typeof saved.cycleCount === "number") {
-      currentConfig.cycleCount = saved.cycleCount;
-      botState.totalCyclesExecuted = saved.cycleCount;
-    }
-    console.log(`[CONFIG] Konfigurasi dimuat dari bot-config.json (Total Cycles: ${botState.totalCyclesExecuted})`);
-  } catch (e) {
-    console.error("Gagal membaca bot-config.json, menggunakan environment default");
+    if (typeof saved.cycleCount === "number") currentConfig.cycleCount = saved.cycleCount;
+    console.log(`[CONFIG] Konfigurasi dimuat dari bot-config.json (Total Cycles: ${currentConfig.cycleCount})`);
+  } catch (e: any) {
+    console.error("Gagal membaca bot-config.json, menggunakan environment default:", e.message);
   }
 }
 
@@ -174,7 +172,7 @@ const botState = {
   escrowBalanceETH: "0.0",
   totalFeesClaimedETH: "0.0",
   totalFeesRetainedETH: "0.0",
-  totalCyclesExecuted: 0,
+  totalCyclesExecuted: currentConfig.cycleCount,
   lastCycleTime: "",
   logs: initialLogs
 };
