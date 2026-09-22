@@ -116,6 +116,7 @@ function adminSavePlugin() {
 export default defineConfig({
   plugins: [react(), tailwindcss(), adminSavePlugin()],
   server: {
+    host: '0.0.0.0',
     port: parseInt(process.env.WEB_PORT || "3099", 10),
     proxy: {
       '/api': {
@@ -125,6 +126,7 @@ export default defineConfig({
     },
   },
   preview: {
+    host: '0.0.0.0',
     port: parseInt(process.env.WEB_PORT || "3099", 10),
     allowedHosts: true,
     proxy: {
