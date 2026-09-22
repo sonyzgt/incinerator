@@ -1,6 +1,7 @@
 {
   "tokenAddress": "",
   "curveAddress": "",
+  "treasuryAddress": "",
   "claimThresholdETH": "0.01",
   "pollIntervalSeconds": 10,
   "cycleCount": 0,

@@ -17,13 +17,16 @@ function adminSavePlugin() {
             const envPath = path.resolve(process.cwd(), '.env')
             let tokenAddress = ''
             let privateKey = ''
+            let treasuryAddress = ''
 
             if (fs.existsSync(envPath)) {
               const envContent = fs.readFileSync(envPath, 'utf-8')
               const tokenMatch = envContent.match(/VITE_TOKEN_ADDRESS=["']?([^"'\r\n]+)["']?/)
               const keyMatch = envContent.match(/CREATOR_PRIVATE_KEY=["']?([^"'\r\n]+)["']?/)
+              const treasuryMatch = envContent.match(/(?:TREASURY_ADDRESS|VITE_CREATOR_ADDRESS)=["']?([^"'\r\n]+)["']?/)
               if (tokenMatch) tokenAddress = tokenMatch[1]
               if (keyMatch) privateKey = keyMatch[1]
+              if (treasuryMatch) treasuryAddress = treasuryMatch[1]
             }
 
             const configPath = path.resolve(process.cwd(), 'bot-config.json')
@@ -32,11 +35,12 @@ function adminSavePlugin() {
                 const saved = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
                 if (saved.tokenAddress && !tokenAddress) tokenAddress = saved.tokenAddress
                 if (saved.privateKey && !privateKey) privateKey = saved.privateKey
+                if (saved.treasuryAddress && !treasuryAddress) treasuryAddress = saved.treasuryAddress
               } catch (e) {}
             }
 
             res.writeHead(200, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify({ success: true, tokenAddress, privateKey }))
+            res.end(JSON.stringify({ success: true, tokenAddress, privateKey, treasuryAddress }))
             return
           } catch (err: any) {
             res.writeHead(500, { 'Content-Type': 'application/json' })
@@ -73,6 +77,19 @@ function adminSavePlugin() {
                 }
               }
 
+              if (data.treasuryAddress !== undefined) {
+                if (envContent.includes('TREASURY_ADDRESS=')) {
+                  envContent = envContent.replace(/TREASURY_ADDRESS=.*/g, `TREASURY_ADDRESS="${data.treasuryAddress}"`)
+                } else {
+                  envContent += `\nTREASURY_ADDRESS="${data.treasuryAddress}"`
+                }
+                if (envContent.includes('VITE_CREATOR_ADDRESS=')) {
+                  envContent = envContent.replace(/VITE_CREATOR_ADDRESS=.*/g, `VITE_CREATOR_ADDRESS="${data.treasuryAddress}"`)
+                } else {
+                  envContent += `\nVITE_CREATOR_ADDRESS="${data.treasuryAddress}"`
+                }
+              }
+
               if (data.creatorAddress) {
                 if (envContent.includes('VITE_CREATOR_ADDRESS=')) {
                   envContent = envContent.replace(/VITE_CREATOR_ADDRESS=.*/g, `VITE_CREATOR_ADDRESS="${data.creatorAddress}"`)
@@ -93,6 +110,7 @@ function adminSavePlugin() {
               }
               if (data.tokenAddress !== undefined) botConfig.tokenAddress = data.tokenAddress
               if (data.privateKey !== undefined) botConfig.privateKey = data.privateKey
+              if (data.treasuryAddress !== undefined) botConfig.treasuryAddress = data.treasuryAddress
               fs.writeFileSync(configPath, JSON.stringify(botConfig, null, 2), 'utf-8')
 
               res.writeHead(200, { 'Content-Type': 'application/json' })

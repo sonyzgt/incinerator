@@ -93,6 +93,28 @@ const getInitialState = (cfg: MachineConfig): FlywheelState => {
 };
 
 const getInitialLogs = (cfg: MachineConfig): ActivityLog[] => {
+  try {
+    const stored = localStorage.getItem('incinerator_activity_logs');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return [];
+};
+
+const getInitialLedger = (): BurnLedgerEntry[] => {
+  try {
+    const stored = localStorage.getItem('incinerator_burn_ledger');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    // ignore
+  }
   return [];
 };
 
@@ -131,6 +153,8 @@ export function useFlywheelEngine() {
       localStorage.removeItem('hot_flywheel_config');
       localStorage.removeItem('jevburn_flywheel_config');
       localStorage.removeItem('incinerator_engine_config');
+      localStorage.removeItem('incinerator_activity_logs');
+      localStorage.removeItem('incinerator_burn_ledger');
     } catch (e) {
       // ignore
     }
@@ -139,7 +163,29 @@ export function useFlywheelEngine() {
 
   const [state, setState] = useState<FlywheelState>(() => getInitialState(config));
   const [logs, setLogs] = useState<ActivityLog[]>(() => getInitialLogs(config));
-  const [burnLedger, setBurnLedger] = useState<BurnLedgerEntry[]>([]);
+  const [burnLedger, setBurnLedger] = useState<BurnLedgerEntry[]>(getInitialLedger);
+
+  // Helper untuk update & simpan logs ke localStorage secara persisten
+  const updateLogsWithStorage = useCallback((updater: ActivityLog[] | ((prev: ActivityLog[]) => ActivityLog[])) => {
+    setLogs((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('incinerator_activity_logs', JSON.stringify(next.slice(0, 80)));
+      } catch (e) {}
+      return next;
+    });
+  }, []);
+
+  // Helper untuk update & simpan burnLedger ke localStorage secara persisten
+  const updateLedgerWithStorage = useCallback((updater: BurnLedgerEntry[] | ((prev: BurnLedgerEntry[]) => BurnLedgerEntry[])) => {
+    setBurnLedger((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('incinerator_burn_ledger', JSON.stringify(next.slice(0, 100)));
+      } catch (e) {}
+      return next;
+    });
+  }, []);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -181,9 +227,9 @@ export function useFlywheelEngine() {
     };
   }, []);
 
-  // Add transaction log with deduplication protection
+  // Add transaction log with deduplication protection and localStorage persistence
   const addLog = useCallback((log: Omit<ActivityLog, 'id' | 'timestamp'>) => {
-    setLogs((prev) => {
+    updateLogsWithStorage((prev) => {
       if (prev.length > 0 && prev[0].action === log.action && prev[0].details === log.details) {
         return prev;
       }
@@ -192,9 +238,9 @@ export function useFlywheelEngine() {
         id: `${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         timestamp: new Date().toLocaleTimeString(),
       };
-      return [newEntry, ...prev.slice(0, 49)];
+      return [newEntry, ...prev.slice(0, 79)];
     });
-  }, []);
+  }, [updateLogsWithStorage]);
 
   // Poll real on-chain metrics & burn ledger automatically
   useEffect(() => {
@@ -227,10 +273,10 @@ export function useFlywheelEngine() {
         }
 
         if (ledgerRes && ledgerRes.entries && ledgerRes.entries.length > 0) {
-          setBurnLedger(ledgerRes.entries);
+          updateLedgerWithStorage(ledgerRes.entries);
 
           // Populate logs if empty so activity telemetry displays real on-chain actions
-          setLogs((prevLogs) => {
+          updateLogsWithStorage((prevLogs) => {
             if (prevLogs.length === 0) {
               const seedLogs: ActivityLog[] = [];
               for (const entry of ledgerRes.entries.slice(0, 30)) {
@@ -586,6 +632,36 @@ export function useFlywheelEngine() {
                   : prev.lastActionText
               };
             });
+
+            // Sinkronisasi logs dari bot backend ke activity telemetry dan localStorage
+            if (data.logs && Array.isArray(data.logs) && data.logs.length > 0) {
+              const mappedBotLogs: ActivityLog[] = data.logs.map((bl: any, idx: number) => {
+                const msgLower = (bl.message || '').toLowerCase();
+                const isBurn = msgLower.includes('burn') || msgLower.includes('incinerat');
+                const isBuy = msgLower.includes('buyback') || msgLower.includes('buy');
+                const isClaim = msgLower.includes('claim');
+                const isKeep = msgLower.includes('keep') || msgLower.includes('treasury');
+                const phase = isBurn ? 'burn' : isBuy ? 'buyback' : isKeep ? 'keep' : isClaim ? 'claim' : 'accumulate';
+
+                return {
+                  id: `bot-${bl.timestamp}-${idx}`,
+                  timestamp: bl.timestamp || new Date().toLocaleTimeString(),
+                  phase,
+                  action: isBurn ? 'BURN TO DEAD' : isBuy ? 'AUTO-BUYBACK' : isKeep ? 'KEEP REVENUE' : isClaim ? 'CLAIM FEE' : 'ENGINE TELEMETRY',
+                  details: bl.message,
+                  txHash: (bl.message || '').match(/0x[a-fA-F0-9]{64}/)?.[0] || '',
+                  status: bl.type === 'error' ? 'failed' : 'success',
+                  contractTarget: isBurn ? '0x000...dEaD' : isBuy ? 'UniswapV4/Curve' : isClaim ? 'PonsFeeEscrow' : 'System'
+                };
+              });
+
+              updateLogsWithStorage((prev) => {
+                const existingDetails = new Set(prev.map((p) => p.details));
+                const newItems = mappedBotLogs.filter((m) => !existingDetails.has(m.details));
+                if (newItems.length === 0) return prev;
+                return [...newItems, ...prev].slice(0, 80);
+              });
+            }
           }
         }
       } catch (e) {

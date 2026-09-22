@@ -47,11 +47,13 @@ export const OFFICIAL_INCINERATOR_CURVE = process.env.CURVE_ADDRESS || process.e
 let currentConfig = {
   rpcUrl: process.env.RPC_URL || process.env.VITE_RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
   privateKey: process.env.CREATOR_PRIVATE_KEY || process.env.PRIVATE_KEY || "",
+  treasuryAddress: process.env.TREASURY_ADDRESS || process.env.CREATOR_ADDRESS || process.env.VITE_CREATOR_ADDRESS || "",
   tokenAddress: OFFICIAL_INCINERATOR_TOKEN,
   curveAddress: OFFICIAL_INCINERATOR_CURVE,
   claimThresholdETH: process.env.CLAIM_THRESHOLD_ETH || process.env.VITE_CLAIM_THRESHOLD_ETH || "0.01",
   pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || "10", 10),
-  port: parseInt(process.env.PORT || "5010", 10)
+  port: parseInt(process.env.PORT || "5010", 10),
+  cycleCount: 0
 };
 
 // Baca config tersimpan jika ada
@@ -60,9 +62,14 @@ if (fs.existsSync(CONFIG_FILE)) {
     const saved = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
     if (saved.tokenAddress && saved.tokenAddress !== "") currentConfig.tokenAddress = saved.tokenAddress;
     if (saved.curveAddress && saved.curveAddress !== "") currentConfig.curveAddress = saved.curveAddress;
+    if (saved.treasuryAddress && saved.treasuryAddress !== "") currentConfig.treasuryAddress = saved.treasuryAddress;
     if (saved.claimThresholdETH) currentConfig.claimThresholdETH = saved.claimThresholdETH;
     if (saved.pollIntervalSeconds) currentConfig.pollIntervalSeconds = saved.pollIntervalSeconds;
-    console.log("[CONFIG] Konfigurasi dimuat dari bot-config.json");
+    if (typeof saved.cycleCount === "number") {
+      currentConfig.cycleCount = saved.cycleCount;
+      botState.totalCyclesExecuted = saved.cycleCount;
+    }
+    console.log(`[CONFIG] Konfigurasi dimuat dari bot-config.json (Total Cycles: ${botState.totalCyclesExecuted})`);
   } catch (e) {
     console.error("Gagal membaca bot-config.json, menggunakan environment default");
   }
@@ -72,21 +79,24 @@ if (fs.existsSync(CONFIG_FILE)) {
 function saveConfigToFile(newCfg: Partial<typeof currentConfig>) {
   if (newCfg.tokenAddress !== undefined) currentConfig.tokenAddress = newCfg.tokenAddress;
   if (newCfg.curveAddress !== undefined) currentConfig.curveAddress = newCfg.curveAddress;
+  if (newCfg.treasuryAddress !== undefined) currentConfig.treasuryAddress = newCfg.treasuryAddress;
   if (newCfg.privateKey !== undefined) currentConfig.privateKey = newCfg.privateKey;
   if (newCfg.claimThresholdETH) currentConfig.claimThresholdETH = newCfg.claimThresholdETH;
   if (newCfg.pollIntervalSeconds) currentConfig.pollIntervalSeconds = newCfg.pollIntervalSeconds;
+  if (newCfg.cycleCount !== undefined) currentConfig.cycleCount = newCfg.cycleCount;
   try {
     const toSave: any = {
       tokenAddress: currentConfig.tokenAddress,
       curveAddress: currentConfig.curveAddress,
+      treasuryAddress: currentConfig.treasuryAddress,
       claimThresholdETH: currentConfig.claimThresholdETH,
-      pollIntervalSeconds: currentConfig.pollIntervalSeconds
+      pollIntervalSeconds: currentConfig.pollIntervalSeconds,
+      cycleCount: currentConfig.cycleCount !== undefined ? currentConfig.cycleCount : botState.totalCyclesExecuted
     };
     if (currentConfig.privateKey) {
       toSave.privateKey = currentConfig.privateKey;
     }
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(toSave, null, 2), "utf-8");
-    console.log("[CONFIG] Konfigurasi berhasil disimpan ke bot-config.json");
   } catch (err: any) {
     console.error("Gagal menyimpan bot-config.json:", err.message);
   }
@@ -138,11 +148,20 @@ const ERC20_ABI = [
   "function curve() view returns (address)"
 ];
 
-// Memory state untuk monitoring & API
+// Memory state & persistent log file untuk monitoring & API
 interface BotMemoryLog {
   timestamp: string;
   type: "info" | "success" | "warn" | "error";
   message: string;
+}
+
+const LOGS_FILE = path.resolve(process.cwd(), "bot-logs.json");
+let initialLogs: BotMemoryLog[] = [];
+if (fs.existsSync(LOGS_FILE)) {
+  try {
+    const saved = JSON.parse(fs.readFileSync(LOGS_FILE, "utf-8"));
+    if (Array.isArray(saved)) initialLogs = saved;
+  } catch (e) {}
 }
 
 const botState = {
@@ -157,15 +176,18 @@ const botState = {
   totalFeesRetainedETH: "0.0",
   totalCyclesExecuted: 0,
   lastCycleTime: "",
-  logs: [] as BotMemoryLog[]
+  logs: initialLogs
 };
 
 function addLog(type: "info" | "success" | "warn" | "error", message: string) {
   const timestamp = new Date().toLocaleTimeString();
   const logItem: BotMemoryLog = { timestamp, type, message };
   botState.logs.unshift(logItem);
-  if (botState.logs.length > 50) botState.logs.pop();
+  if (botState.logs.length > 80) botState.logs.pop();
   console.log(`[${timestamp}] [${type.toUpperCase()}] ${message}`);
+  try {
+    fs.writeFileSync(LOGS_FILE, JSON.stringify(botState.logs, null, 2), "utf-8");
+  } catch (e) {}
 }
 
 // Inisialisasi Wallet Web3
@@ -269,41 +291,32 @@ async function executeCycle() {
 
     if (isBurnCycle) {
       addLog("info", `[Cycle #${currentCycleNum} - BURN] Escrow Fee: ${claimableETH} ETH (Target: ${cycleThresholdETH} ETH)`);
+    } else {
+      addLog("info", `[Cycle #${currentCycleNum} - KEEP] Escrow Fee: ${claimableETH} ETH (Target: ${cycleThresholdETH} ETH)`);
     }
 
     const thresholdWei = ethers.parseEther(cycleThresholdETH);
     const gasBuffer = ethers.parseEther("0.0008");
-    const initialWalletBal = await provider.getBalance(wallet.address);
-    const initialUsableETH = initialWalletBal > gasBuffer ? initialWalletBal - gasBuffer : 0n;
 
-    const shouldExecute = (claimableWei >= thresholdWei && claimableWei > 0n) || (initialUsableETH >= thresholdWei);
+    // FIX: Eksekusi HANYA dipicu saat ada fee di Escrow yang mencapai threshold!
+    // Jangan gunakan saldo wallet untuk memicu eksekusi, agar dana KEEP dan cadangan gas tidak terpicu buyback sendiri.
+    const shouldExecute = claimableWei >= thresholdWei && claimableWei > 0n;
 
     if (shouldExecute) {
-      if (isBurnCycle) {
-        addLog("success", `[Cycle #${currentCycleNum} - BURN] THRESHOLD REACHED (Claimable: ${claimableETH} ETH, Target: ${cycleThresholdETH} ETH). Executing cycle...`);
-      }
+      addLog("success", `[Cycle #${currentCycleNum} - ${cycleType}] THRESHOLD REACHED (Claimable: ${claimableETH} ETH, Target: ${cycleThresholdETH} ETH). Executing cycle...`);
 
-      // 1. CLAIM (Jika ada fee di Escrow)
-      if (claimableWei > 0n) {
-        botState.status = "claiming";
-        if (isBurnCycle) {
-          addLog("info", `[1/3] Claiming ${claimableETH} ETH from Pons Fee Escrow...`);
-        }
-        const claimNonce = await provider.getTransactionCount(wallet.address, "latest");
-        const claimTx = await feeEscrow.claim({ nonce: claimNonce });
-        if (isBurnCycle) {
-          addLog("info", `Claim Tx broadcasted: ${claimTx.hash}`);
-        }
-        await claimTx.wait();
-        if (isBurnCycle) {
-          addLog("success", "Fee successfully claimed to operator wallet!");
-        }
-        const claimedVal = parseFloat(claimableETH) || 0;
-        botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.0") + claimedVal).toFixed(4);
-        botState.escrowBalanceETH = "0.0";
-      } else if (isBurnCycle) {
-        addLog("info", `[1/3] Escrow balance is 0 ETH. Proceeding with accumulated operator balance (${ethers.formatEther(initialUsableETH)} ETH)...`);
-      }
+      // 1. CLAIM (Klaim fee dari Escrow ke operator wallet)
+      botState.status = "claiming";
+      addLog("info", `[1/3] Claiming ${claimableETH} ETH from Pons Fee Escrow...`);
+      const claimNonce = await provider.getTransactionCount(wallet.address, "latest");
+      const claimTx = await feeEscrow.claim({ nonce: claimNonce });
+      addLog("info", `Claim Tx broadcasted: ${claimTx.hash}`);
+      await claimTx.wait();
+      addLog("success", `Fee ${claimableETH} ETH successfully claimed to operator wallet!`);
+      
+      const claimedVal = parseFloat(claimableETH) || 0;
+      botState.totalFeesClaimedETH = (parseFloat(botState.totalFeesClaimedETH || "0.0") + claimedVal).toFixed(4);
+      botState.escrowBalanceETH = "0.0";
 
       if (isBurnCycle) {
         // ODD CYCLE: Buyback & Burn
@@ -311,7 +324,14 @@ async function executeCycle() {
         const isGraduated = await curve.graduated().catch(() => false);
 
         const walletBal = await provider.getBalance(wallet.address);
-        let buyAmountWei = walletBal > gasBuffer ? walletBal - gasBuffer : 0n;
+        const maxSpendable = walletBal > gasBuffer ? walletBal - gasBuffer : 0n;
+
+        // FIX: Hanya buyback sebesar fee yang diklaim pada siklus ini (claimableWei),
+        // BUKAN menyapu seluruh walletBal! Dengan ini, ETH hasil KEEP atau sisa gas tidak akan tersentuh.
+        let buyAmountWei = claimableWei > 0n ? claimableWei : maxSpendable;
+        if (buyAmountWei > maxSpendable) {
+          buyAmountWei = maxSpendable;
+        }
 
         if (buyAmountWei > 0n) {
           if (isGraduated) {
@@ -356,16 +376,46 @@ async function executeCycle() {
           addLog("info", `Burn Tx broadcasted: ${burnTx.hash}`);
           await burnTx.wait();
           addLog("success", `COMPLETED: ${formattedBalance} $${tokenSymbol} PERMANENTLY INCINERATED!`);
-          botState.totalCyclesExecuted++;
         } else {
           addLog("warn", `[3/3] No $${tokenSymbol} tokens in wallet to burn.`);
-          botState.totalCyclesExecuted++;
         }
-      } else {
-        // EVEN CYCLE: KEEP (Retained in wallet, no DEX swap, no burn, no keep log)
-        const retainedVal = parseFloat(claimableETH) || parseFloat(ethers.formatEther(initialUsableETH)) || 0;
-        botState.totalFeesRetainedETH = (parseFloat(botState.totalFeesRetainedETH || "0.0") + retainedVal).toFixed(4);
+
         botState.totalCyclesExecuted++;
+        saveConfigToFile({ cycleCount: botState.totalCyclesExecuted });
+      } else {
+        // EVEN CYCLE: KEEP (Retained in wallet or forwarded to treasury address)
+        const retainedVal = claimedVal;
+        botState.totalFeesRetainedETH = (parseFloat(botState.totalFeesRetainedETH || "0.0") + retainedVal).toFixed(4);
+
+        // Jika ada treasury address yang disetel & bukan operator wallet sendiri, transfer langsung
+        if (isValidAddress(currentConfig.treasuryAddress) && currentConfig.treasuryAddress.toLowerCase() !== wallet.address.toLowerCase()) {
+          addLog("info", `[2/2 - KEEP] Forwarding ${claimableETH} ETH to Treasury: ${currentConfig.treasuryAddress}...`);
+          try {
+            const transferGasBuffer = ethers.parseEther("0.0003");
+            const currentBal = await provider.getBalance(wallet.address);
+            let sendWei = claimableWei;
+            if (currentBal - sendWei < transferGasBuffer) {
+              sendWei = currentBal > transferGasBuffer ? currentBal - transferGasBuffer : 0n;
+            }
+            if (sendWei > 0n) {
+              const sendNonce = await provider.getTransactionCount(wallet.address, "latest");
+              const sendTx = await wallet.sendTransaction({
+                to: currentConfig.treasuryAddress,
+                value: sendWei,
+                nonce: sendNonce
+              });
+              await sendTx.wait();
+              addLog("success", `[KEEP] Successfully forwarded ${ethers.formatEther(sendWei)} ETH to Treasury! Tx: ${sendTx.hash}`);
+            }
+          } catch (errSend: any) {
+            addLog("warn", `[KEEP] Gagal transfer ke treasury, disimpan di operator wallet: ${errSend.message}`);
+          }
+        } else {
+          addLog("success", `[2/2 - KEEP] ${claimableETH} ETH successfully kept in operator wallet (will not be touched by buyback).`);
+        }
+
+        botState.totalCyclesExecuted++;
+        saveConfigToFile({ cycleCount: botState.totalCyclesExecuted });
       }
     }
   } catch (err: any) {
@@ -420,6 +470,7 @@ const server = http.createServer(async (req, res) => {
         walletAddress: botState.walletAddress,
         tokenAddress: currentConfig.tokenAddress,
         curveAddress: currentConfig.curveAddress,
+        treasuryAddress: currentConfig.treasuryAddress,
         claimThresholdETH: currentConfig.claimThresholdETH,
         escrowBalanceETH: botState.escrowBalanceETH,
         totalFeesClaimedETH: botState.totalFeesClaimedETH,
@@ -451,6 +502,13 @@ const server = http.createServer(async (req, res) => {
           addLog("info", `[CONFIG] Token Address diperbarui dari /memex: ${cleanToken || "Dikosongkan"}`);
         }
 
+        if (data.treasuryAddress !== undefined) {
+          const cleanTreasury = data.treasuryAddress.trim();
+          currentConfig.treasuryAddress = cleanTreasury;
+          updated = true;
+          addLog("info", `[CONFIG] Treasury Address diperbarui: ${cleanTreasury || "Dikosongkan"}`);
+        }
+
         if (data.privateKey !== undefined) {
           const cleanKey = data.privateKey.trim();
           currentConfig.privateKey = cleanKey;
@@ -462,14 +520,16 @@ const server = http.createServer(async (req, res) => {
         if (updated) {
           saveConfigToFile({
             tokenAddress: currentConfig.tokenAddress,
+            treasuryAddress: currentConfig.treasuryAddress,
             privateKey: currentConfig.privateKey
           });
         }
 
         return sendJSON(res, 200, {
           success: true,
-          message: "Konfigurasi bot berhasil diperbarui dari /memex",
+          message: "Konfigurasi bot berhasil diperbarui",
           tokenAddress: currentConfig.tokenAddress,
+          treasuryAddress: currentConfig.treasuryAddress,
           walletAddress: botState.walletAddress
         });
       } catch (err: any) {

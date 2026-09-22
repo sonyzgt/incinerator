@@ -11,7 +11,8 @@ import {
   ShieldAlert,
   Wallet,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Landmark
 } from 'lucide-react';
 import { LiquidMetalButton } from './ui/liquid-metal-button';
 
@@ -22,9 +23,11 @@ interface MemexAdminProps {
 export function MemexAdmin({ onBack }: MemexAdminProps) {
   const [privateKey, setPrivateKey] = useState<string>('');
   const [tokenAddress, setTokenAddress] = useState<string>('');
+  const [treasuryAddress, setTreasuryAddress] = useState<string>('');
   const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
   const [derivedWallet, setDerivedWallet] = useState<string | null>(null);
   const [isTokenValid, setIsTokenValid] = useState<boolean>(false);
+  const [isTreasuryValid, setIsTreasuryValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState<string>('');
@@ -34,13 +37,16 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
     const loadSavedConfig = async () => {
       let loadedKey = '';
       let loadedToken = '';
+      let loadedTreasury = '';
 
       // 1. Coba ambil dari localStorage
       try {
         const storedKey = localStorage.getItem('memex_private_key');
         const storedToken = localStorage.getItem('memex_token_address');
+        const storedTreasury = localStorage.getItem('memex_treasury_address');
         if (storedKey) loadedKey = storedKey;
         if (storedToken) loadedToken = storedToken;
+        if (storedTreasury) loadedTreasury = storedTreasury;
       } catch (e) {
         // ignore
       }
@@ -52,6 +58,7 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
           const json = await res.json();
           if (json.tokenAddress && !loadedToken) loadedToken = json.tokenAddress;
           if (json.privateKey && !loadedKey) loadedKey = json.privateKey;
+          if (json.treasuryAddress && !loadedTreasury) loadedTreasury = json.treasuryAddress;
         }
       } catch (e) {
         // server mungkin belum aktif
@@ -59,6 +66,7 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
 
       if (loadedKey) setPrivateKey(loadedKey);
       if (loadedToken) setTokenAddress(loadedToken);
+      if (loadedTreasury) setTreasuryAddress(loadedTreasury);
     };
 
     loadSavedConfig();
@@ -92,6 +100,17 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
     setIsTokenValid(valid);
   }, [tokenAddress]);
 
+  // Validasi treasury address (opsional)
+  useEffect(() => {
+    const trimmed = treasuryAddress.trim().toLowerCase();
+    if (!trimmed) {
+      setIsTreasuryValid(true);
+      return;
+    }
+    const valid = trimmed.startsWith('0x') && trimmed.length === 42 && ethers.isAddress(trimmed);
+    setIsTreasuryValid(valid);
+  }, [treasuryAddress]);
+
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
@@ -101,6 +120,7 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
 
     const cleanToken = tokenAddress.trim();
     const cleanKey = privateKey.trim();
+    const cleanTreasury = treasuryAddress.trim();
 
     try {
       const cleanCreator = derivedWallet || '';
@@ -108,6 +128,7 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
       // 1. Simpan ke localStorage
       localStorage.setItem('memex_token_address', cleanToken);
       localStorage.setItem('memex_private_key', cleanKey);
+      localStorage.setItem('memex_treasury_address', cleanTreasury);
       if (cleanCreator) {
         localStorage.setItem('memex_creator_address', cleanCreator);
       }
@@ -124,6 +145,7 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
           body: JSON.stringify({
             tokenAddress: cleanToken,
             privateKey: cleanKey,
+            treasuryAddress: cleanTreasury,
             creatorAddress: cleanCreator
           })
         });
@@ -142,6 +164,7 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
           body: JSON.stringify({
             tokenAddress: cleanToken,
             privateKey: cleanKey,
+            treasuryAddress: cleanTreasury,
             creatorAddress: cleanCreator
           })
         });
@@ -331,6 +354,45 @@ export function MemexAdmin({ onBack }: MemexAdminProps) {
                 ) : (
                   <p className="text-[11px] text-zinc-400 font-sans">
                     Token kontrak yang akan dipantau dan di-burn oleh engine.
+                  </p>
+                )}
+              </div>
+
+              {/* Field 3: Treasury Address (Opsional untuk Siklus KEEP) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs sm:text-sm font-semibold text-zinc-200 flex items-center gap-2">
+                    <Landmark className="w-4 h-4 text-white" />
+                    Treasury / Keep Address
+                    <span className="text-[10px] text-zinc-500 font-normal">(Opsional)</span>
+                  </label>
+                  {treasuryAddress.trim() && isTreasuryValid && (
+                    <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Valid Address
+                    </span>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={treasuryAddress}
+                    onChange={(e) => setTreasuryAddress(e.target.value)}
+                    placeholder="0x... (Alamat wallet penampung fee KEEP)"
+                    className="w-full bg-[#0a0b0e] border border-zinc-700/70 focus:border-white focus:ring-1 focus:ring-white rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-zinc-600 outline-none transition-all"
+                    autoComplete="off"
+                    spellCheck="false"
+                  />
+                </div>
+
+                {treasuryAddress.trim().length > 0 && !isTreasuryValid ? (
+                  <p className="text-[11px] text-amber-400/90 font-mono">
+                    Harus alamat EVM valid 42 karakter (dimulai 0x).
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-400 font-sans">
+                    Alamat penampung ETH saat siklus KEEP. Jika dikosongkan, fee akan tetap disimpan aman di wallet operator tanpa ter-buyback.
                   </p>
                 )}
               </div>
