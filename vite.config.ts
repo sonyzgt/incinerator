@@ -127,6 +127,12 @@ export default defineConfig({
   preview: {
     port: parseInt(process.env.WEB_PORT || "3099", 10),
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: `http://localhost:${process.env.PORT || '5010'}`,
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     rollupOptions: {
