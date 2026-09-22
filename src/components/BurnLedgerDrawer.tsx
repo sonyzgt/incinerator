@@ -220,18 +220,8 @@ export const BurnLedgerDrawer: React.FC<BurnLedgerDrawerProps> = ({
                   viewMode="text"
                   enableShader={false}
                   label="Proofs"
-                  isActive={activeTab === "proofs"}
-                  variant={activeTab === "proofs" ? "ember" : "default"}
-                  onClick={() => setActiveTab("proofs")}
-                />
-                <LiquidMetalButton
-                  size="xs"
-                  viewMode="text"
-                  enableShader={false}
-                  label="Live Stream"
-                  isActive={activeTab === "stream"}
-                  variant={activeTab === "stream" ? "ember" : "default"}
-                  onClick={() => setActiveTab("stream")}
+                  isActive={true}
+                  variant="ember"
                 />
               </div>
 
